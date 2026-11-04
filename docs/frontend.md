@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 279 tests
+npm test -w frontend   # 292 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -73,7 +73,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/reports` Reports | one page for clearance files, client balances, expenses, revenue and employee performance; filters, totals, export |
 | `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal), Trial balance, Chart of accounts, Cash and bank, Exchange rates |
 | `/users` Users and roles | tabs Users (add, edit, deactivate) and Roles (built-in and custom, permissions) |
-| `/settings` Settings | tabs Office, Branches, Tax, Financial categories (need `settings.manage`) and Workflows (needs `workflows.manage`); each tab shows only to those who hold its permission |
+| `/settings` Settings | tabs Office, Branches, Tax, Financial categories, Document types (need `settings.manage`) and Workflows, Required documents (need `workflows.manage`); each tab shows only to those who hold its permission |
 | `/shipments`, `/documents`, `/expenses` | every shipment / document / expense in the office with filters; rows link to the file, where changes are made. Shipments search BL, container, vessel and voyage; documents search the file name |
 | `/account` My account | who I am in this office, and change my password (reached from my name in the header) |
 | `/audit` Audit log | who did what and when, with filters and the before/after of each change (needs `audit.view`) |
@@ -255,6 +255,15 @@ adding and editing needs `clients.manage`. There is no deactivate or delete (the
 * The **shipment form** now has **Shipping agent** and **Freight forwarder** pickers (searchable, each limited to its own kind). They show only to people who can list parties
   (`clients.view`); for everyone else the saved agent and forwarder are left untouched rather than cleared. The shipment details show both.
 * The API does not check the *kind* of party chosen as a shipment's agent, so only the screen keeps agents and forwarders apart.
+
+### Document types and required documents (Settings)
+
+* **Document types** (`settings.manage`): the kinds of document the office collects. Built-in kinds are read-only; the office adds its own (code fixed and stored upper-case, names in
+  English and Arabic), renames them and can deactivate them. An inactive type is no longer offered for new uploads or requirements.
+* **Required documents** (`workflows.manage`): which documents each kind of file (import, export, other) needs and **before which stage**. Leaving the stage empty means "before the file is
+  finished". The stages offered are those of that kind of file's workflows, the one in use first. A file's checklist and the document check on its stage moves follow this list. Only the
+  mandatory flag, the stage and a note can be edited; to change the kind of file or the document type, remove the requirement and add it again.
+* The note "Applies to" (e.g. "sea shipments only") is **shown but not enforced**, and the API's *conditions* field, which is stored but not evaluated yet, has no screen.
 
 ## Adding a screen
 

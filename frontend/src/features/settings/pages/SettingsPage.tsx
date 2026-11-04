@@ -5,14 +5,17 @@ import { can } from '@/lib/permissions';
 import { useAuth } from '@/features/auth/auth';
 import { BranchesTab } from '../components/BranchesTab';
 import { CategoriesTab } from '../components/CategoriesTab';
+import { DocumentTypesTab } from '../components/DocumentTypesTab';
 import { OfficeTab } from '../components/OfficeTab';
+import { RequirementsTab } from '../components/RequirementsTab';
 import { TaxTab } from '../components/TaxTab';
 import { WorkflowsTab } from '../components/WorkflowsTab';
 
 // Each tab needs the permission the API asks for: office settings, or workflow configuration.
 const ALL_TABS = [
   { key: 'office', permission: 'settings.manage' }, { key: 'branches', permission: 'settings.manage' }, { key: 'tax', permission: 'settings.manage' },
-  { key: 'categories', permission: 'settings.manage' }, { key: 'workflows', permission: 'workflows.manage' },
+  { key: 'categories', permission: 'settings.manage' }, { key: 'documentTypes', permission: 'settings.manage' },
+  { key: 'workflows', permission: 'workflows.manage' }, { key: 'requirements', permission: 'workflows.manage' },
 ] as const;
 type Tab = (typeof ALL_TABS)[number]['key'];
 
@@ -40,7 +43,9 @@ export function SettingsPage() {
         {tab === 'branches' && <BranchesTab />}
         {tab === 'tax' && <TaxTab />}
         {tab === 'categories' && <CategoriesTab />}
+        {tab === 'documentTypes' && <DocumentTypesTab />}
         {tab === 'workflows' && <WorkflowsTab />}
+        {tab === 'requirements' && <RequirementsTab />}
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ Product and technical direction: [ClearPort_Project_Specification.md](ClearPort_
 | Part | Status |
 |---|---|
 | **Backend** (NestJS + Prisma + SQLite) | Phases 1–6 complete, 516 tests. Auth, multi-tenancy, RBAC, users/roles/branches/settings, CRM, clearance files, documents, workflow, tasks, finance and accounting, dashboard, reports, Excel/CSV/PDF export, printable invoices and statements, background jobs, backup/restore, audit log, security review. |
-| **Frontend** (React + Vite) | 279 tests. Sign-in (including office selection), app shell with permission-aware navigation, English/Arabic with RTL, dashboard, clients (list, create, details, contacts, files, balance and statement), business parties (agents, forwarders, suppliers), the audit log, my account (change password), printable invoice and statement PDFs, the tasks page, the office-wide shipments, documents, invoices, payments and expenses lists, reports with Excel/CSV/PDF export, accounting (journal, trial balance, chart of accounts, cash and bank, exchange rates), users and roles, settings (office, branches, tax, financial categories, workflow templates), and the clearance-file workspace: list, create form, file page with stage moves, close/reopen, assignment, editing, shipments with containers and goods, documents (checklist, upload, review), tasks, invoices (drafts, issue, cancel), payments (record, apply, reverse), expenses (record, approve, pay), activity and stage history. Every section of the menu now has a screen. |
+| **Frontend** (React + Vite) | 292 tests. Sign-in (including office selection), app shell with permission-aware navigation, English/Arabic with RTL, dashboard, clients (list, create, details, contacts, files, balance and statement), business parties (agents, forwarders, suppliers), the audit log, my account (change password), printable invoice and statement PDFs, the tasks page, the office-wide shipments, documents, invoices, payments and expenses lists, reports with Excel/CSV/PDF export, accounting (journal, trial balance, chart of accounts, cash and bank, exchange rates), users and roles, settings (office, branches, tax, financial categories, document types, required documents, workflow templates), and the clearance-file workspace: list, create form, file page with stage moves, close/reopen, assignment, editing, shipments with containers and goods, documents (checklist, upload, review), tasks, invoices (drafts, issue, cancel), payments (record, apply, reverse), expenses (record, approve, pay), activity and stage history. Every section of the menu now has a screen. |
 
 Architecture and API notes: [docs/architecture.md](docs/architecture.md) (backend) and
 [docs/frontend.md](docs/frontend.md). Database: [docs/database.md](docs/database.md).
@@ -63,7 +63,7 @@ Then, from the repository root:
 ```bash
 npm run start:api             # API on http://localhost:3000/api/v1
 npm run dev                   # web app on http://localhost:5173 (proxies /api to the API)
-npm test -w frontend          # frontend tests (279)
+npm test -w frontend          # frontend tests (292)
 ```
 
 Set `VITE_API_TARGET` to point the web app at a different API address.

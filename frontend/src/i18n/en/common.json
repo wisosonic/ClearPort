@@ -699,7 +699,9 @@
       "branches": "Branches",
       "tax": "Tax",
       "categories": "Financial categories",
-      "workflows": "Workflows"
+      "workflows": "Workflows",
+      "documentTypes": "Document types",
+      "requirements": "Required documents"
     },
     "saved": "Saved.",
     "yes": "Yes",
@@ -868,5 +870,29 @@
       "TRANSPORTER": "Transporter",
       "OTHER": "Other"
     }
+  },
+  "dtypes": {
+    "intro": "The kinds of document your office collects. Built-in kinds cannot be changed; add your own for anything else.",
+    "add": "Add document type",
+    "edit": "Edit document type",
+    "none": "No document types."
+  },
+  "reqs": {
+    "intro": "Which documents each kind of file needs, and by which stage. A file's checklist and its stage moves follow this list.",
+    "add": "Add requirement",
+    "edit": "Edit requirement",
+    "none": "No requirements yet.",
+    "forFiles": "{{type}} files",
+    "need": "Needed",
+    "when": "Needed before",
+    "beforeStage": "Needed before stage",
+    "beforeStageHint": "The file cannot enter this stage without the document.",
+    "beforeFinished": "The file is finished",
+    "beforeNamed": "{{stage}}",
+    "appliesTo": "Applies to",
+    "appliesToHint": "Optional note, e.g. \"sea shipments only\". It is shown, not enforced.",
+    "mandatory": "Mandatory (otherwise it is only listed as optional)",
+    "fixed": "The kind of file and the document type are fixed; remove the requirement and add it again to change them.",
+    "removeConfirm": "Stop requiring {{name}}?"
   }
 }

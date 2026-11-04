@@ -64,10 +64,10 @@ const sent = (method: string, path: string) => calls.filter((c) => c.method === 
 const edit = async (user: ReturnType<typeof userEvent.setup>, name = 'Standard import') => user.click(await screen.findByRole('button', { name: `Edit stages and rules ${name}` }));
 
 describe('workflow list', () => {
-  it('is reachable with only workflows.manage, and shows only that tab', async () => {
+  it('is reachable with only workflows.manage, and shows only the tabs that permission covers', async () => {
     await open();
     expect(await screen.findByText('Standard import')).toBeInTheDocument();
-    expect(screen.getAllByRole('tab').map((x) => x.textContent)).toEqual(['Workflows']);
+    expect(screen.getAllByRole('tab').map((x) => x.textContent)).toEqual(['Workflows', 'Required documents']);
     expect(screen.queryByRole('tab', { name: 'Office' })).not.toBeInTheDocument();
   });
 
