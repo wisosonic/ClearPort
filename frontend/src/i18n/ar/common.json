@@ -163,7 +163,8 @@
       "shipments": "الشحنات",
       "documents": "المستندات",
       "tasks": "المهام",
-      "invoices": "الفواتير"
+      "invoices": "الفواتير",
+      "payments": "الدفعات"
     },
     "summary": {
       "title": "الملخص",
@@ -385,5 +386,63 @@
       "PARTIALLY_PAID": "مدفوعة جزئياً",
       "PAID": "مدفوعة"
     }
+  },
+  "pay": {
+    "title": "الدفعات",
+    "none": "لا توجد دفعات مسجلة لهذا الملف بعد.",
+    "record": "تسجيل دفعة",
+    "save": "تسجيل الدفعة",
+    "readOnly": "هذا الملف مغلق أو ملغى، لذا لا يمكن تعديل الدفعات.",
+    "type": "النوع",
+    "amount": "المبلغ",
+    "date": "التاريخ",
+    "method": "الطريقة",
+    "reference": "المرجع (رقم الشيك أو التحويل…)",
+    "cashAccount": "الصندوق أو الحساب المصرفي",
+    "noAccount": "لا يوجد حساب فعّال بعملة {{currency}}؛ أضف حساباً من المحاسبة أولاً.",
+    "amountInvalid": "أدخل مبلغاً أكبر من صفر بحد أقصى 4 خانات عشرية",
+    "cashRequired": "اختر الحساب الذي استلم المبلغ",
+    "types": {
+      "CLIENT_PAYMENT": "دفعة",
+      "CLIENT_ADVANCE": "دفعة مقدمة",
+      "REFUND": "استرداد",
+      "SUPPLIER_PAYMENT": "دفعة لمورّد",
+      "REIMBURSEMENT": "تعويض"
+    },
+    "typeHint": {
+      "CLIENT_PAYMENT": "مبلغ مستلم مقابل فواتير.",
+      "CLIENT_ADVANCE": "مبلغ مستلم قبل الفاتورة ويُحتفظ به للعميل.",
+      "REFUND": "يعيد رصيداً يحتفظ به العميل."
+    },
+    "methods": {
+      "CASH": "نقداً",
+      "BANK_TRANSFER": "تحويل مصرفي",
+      "CHEQUE": "شيك",
+      "CARD": "بطاقة",
+      "OTHER": "أخرى"
+    },
+    "statuses": {
+      "DRAFT": "مسودة",
+      "POSTED": "مرحّلة",
+      "CANCELLED": "ملغاة",
+      "REVERSED": "معكوسة"
+    },
+    "unapplied": "غير مطبّقة بالكامل",
+    "heldLine": "المطبّق على الفواتير: {{applied}}. المحتفظ به للعميل: {{held}}.",
+    "invoice": "الفاتورة",
+    "fromPayment": "من الدفعة",
+    "toInvoice": "المقيّد للفاتورة",
+    "reversed": "معكوسة",
+    "apply": "تطبيق على الفواتير",
+    "applyTitle": "التطبيق على الفواتير (المتاح {{amount}})",
+    "applyAmount": "المبلغ ({{currency}})",
+    "creditedAmount": "المقيّد للفاتورة ({{currency}})",
+    "creditedHint": "اختياري: اتركه فارغاً للتحويل بالسعر الحالي.",
+    "noOpenInvoices": "لا توجد فواتير صادرة بمبلغ متبقٍ على هذا الملف.",
+    "pickInvoice": "أدخل مبلغاً لفاتورة واحدة على الأقل",
+    "reverse": "عكس",
+    "reverseReason": "سبب عكس هذا التطبيق",
+    "cancelPayment": "إلغاء الدفعة",
+    "cancelReason": "سبب إلغاء هذه الدفعة"
   }
 }

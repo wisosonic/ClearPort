@@ -159,7 +159,8 @@
       "shipments": "Shipments",
       "documents": "Documents",
       "tasks": "Tasks",
-      "invoices": "Invoices"
+      "invoices": "Invoices",
+      "payments": "Payments"
     },
     "summary": {
       "title": "Summary",
@@ -381,5 +382,63 @@
       "PARTIALLY_PAID": "Partly paid",
       "PAID": "Paid"
     }
+  },
+  "pay": {
+    "title": "Payments",
+    "none": "No payments recorded for this file yet.",
+    "record": "Record payment",
+    "save": "Record payment",
+    "readOnly": "This file is closed or cancelled, so payments cannot be changed.",
+    "type": "Type",
+    "amount": "Amount",
+    "date": "Date",
+    "method": "Method",
+    "reference": "Reference (cheque, transfer number…)",
+    "cashAccount": "Cash or bank account",
+    "noAccount": "No active account in {{currency}}; add one under accounting first.",
+    "amountInvalid": "Enter an amount above zero, up to 4 decimals",
+    "cashRequired": "Choose the account that received the money",
+    "types": {
+      "CLIENT_PAYMENT": "Payment",
+      "CLIENT_ADVANCE": "Advance",
+      "REFUND": "Refund",
+      "SUPPLIER_PAYMENT": "Supplier payment",
+      "REIMBURSEMENT": "Reimbursement"
+    },
+    "typeHint": {
+      "CLIENT_PAYMENT": "Money received for invoices.",
+      "CLIENT_ADVANCE": "Money received before an invoice; held for the client.",
+      "REFUND": "Pays back credit the client holds."
+    },
+    "methods": {
+      "CASH": "Cash",
+      "BANK_TRANSFER": "Bank transfer",
+      "CHEQUE": "Cheque",
+      "CARD": "Card",
+      "OTHER": "Other"
+    },
+    "statuses": {
+      "DRAFT": "Draft",
+      "POSTED": "Posted",
+      "CANCELLED": "Cancelled",
+      "REVERSED": "Reversed"
+    },
+    "unapplied": "Not fully applied",
+    "heldLine": "Applied to invoices: {{applied}}. Still held for the client: {{held}}.",
+    "invoice": "Invoice",
+    "fromPayment": "From the payment",
+    "toInvoice": "Credited to the invoice",
+    "reversed": "Reversed",
+    "apply": "Apply to invoices",
+    "applyTitle": "Apply to invoices ({{amount}} available)",
+    "applyAmount": "Amount ({{currency}})",
+    "creditedAmount": "Credited to invoice ({{currency}})",
+    "creditedHint": "Optional: leave empty to convert at the current rate.",
+    "noOpenInvoices": "There are no issued invoices with an amount outstanding on this file.",
+    "pickInvoice": "Enter an amount for at least one invoice",
+    "reverse": "Reverse",
+    "reverseReason": "Reason for reversing this allocation",
+    "cancelPayment": "Cancel payment",
+    "cancelReason": "Reason for cancelling this payment"
   }
 }

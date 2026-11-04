@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 99 tests
+npm test -w frontend   # 114 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -66,10 +66,10 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/` Dashboard | done: file counts, my tasks, finance block only with finance permissions |
 | `/files` Clearance files | list with search, filters and paging; **New file** button with the create permission |
 | `/files/new` | create form: client search, type, priority, branch, arrival date, customs reference, notes |
-| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Tasks, Invoices, Activity, Stage history |
+| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Tasks, Invoices, Payments, Activity, Stage history |
 | `/clients` Clients | list with search and paging |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
-| shipments, documents, payments, expenses, accounting, reports, users, settings | placeholder |
+| shipments, documents, expenses, accounting, reports, users, settings | placeholder |
 
 ## Clearance file workspace
 
@@ -137,6 +137,18 @@ The **Invoices** tab (needs `invoices.view`) lists the file's invoices; a row ex
 * **Totals and tax** are computed by the API on save and shown from its response; the form never does money arithmetic.
 * Issuing uses the exchange rate in force; if a foreign-currency invoice has no rate the API's message is shown.
 
+### Payments (`features/clearance-files/components/payments/`)
+
+The **Payments** tab (needs `payments.view`) lists the payments recorded against the file; a row expands to show what was applied and the actions.
+
+* **Record** (needs `payments.create`): a *payment* (money for invoices), an *advance* (money before an invoice, held for the client) or a *refund* (pays back credit the
+  client holds; the API refuses more than the held credit). The money goes to a cash or bank account **in the payment's currency**, which is chosen automatically when there is only one.
+* **Apply to invoices:** shows the file's issued invoices with something outstanding (advance invoices are not payable; the API explains why). When the invoice is in another
+  currency than the payment, the amount credited to the invoice can be typed or left empty to convert at the current rate.
+* **Reverse** an allocation or **cancel** a payment, each with a reason. A payment can only be cancelled when none of its allocations is live.
+* The payment methods are a fixed list in the UI (cash, bank transfer, cheque, card, other) because the API has no endpoint to list them.
+* Everything the payment touches is refreshed: the invoices (paid and outstanding are derived), the closure check and the file summary.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -147,5 +159,5 @@ The **Invoices** tab (needs `invoices.view`) lists the file's invoices; a row ex
 
 ## Next
 
-The remaining tabs of the file page (payments; expenses); client details and forms; tasks and
+The remaining tab of the file page (expenses); client details and forms; tasks and
 documents; finance screens; reports, users and settings; code-splitting (the bundle is about 611 kB).
