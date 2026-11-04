@@ -8,10 +8,11 @@ import { Badge, Card, ErrorState, Spinner } from '@/components/ui/primitives';
 import { AssignControl } from '../components/AssignControl';
 import { ActivityTab, StageHistoryTab } from '../components/HistoryTabs';
 import { OverviewTab } from '../components/OverviewTab';
+import { ShipmentsTab } from '../components/shipments/ShipmentsTab';
 import { StagePanel } from '../components/StagePanel';
 import { priorityTone, statusTone, type FileDetail } from '../lib';
 
-const TABS = ['overview', 'activity', 'stages'] as const;
+const TABS = ['overview', 'shipments', 'activity', 'stages'] as const;
 type Tab = (typeof TABS)[number];
 
 export function FileDetailPage() {
@@ -59,6 +60,7 @@ export function FileDetailPage() {
       </div>
       <div role="tabpanel">
         {tab === 'overview' && <OverviewTab file={file} />}
+        {tab === 'shipments' && <ShipmentsTab file={file} />}
         {tab === 'activity' && <ActivityTab fileId={file.id} />}
         {tab === 'stages' && <StageHistoryTab fileId={file.id} />}
       </div>

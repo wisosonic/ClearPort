@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 48 tests
+npm test -w frontend   # 57 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -66,7 +66,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/` Dashboard | done: file counts, my tasks, finance block only with finance permissions |
 | `/files` Clearance files | list with search, filters and paging; **New file** button with the create permission |
 | `/files/new` | create form: client search, type, priority, branch, arrival date, customs reference, notes |
-| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts, shipments), Activity, Stage history |
+| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Activity, Stage history |
 | `/clients` Clients | list with search and paging |
 | shipments, documents, tasks, invoices, payments, expenses, accounting, reports, users, settings | placeholder |
 
@@ -85,6 +85,18 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 * The activity timeline texts and some blocker messages are written by the server in English; known blocker
   codes are translated, the rest show the server text.
 
+### Shipments tab
+
+Shipments with their containers and goods lines (`components/shipments/`). Add and edit need `clearance_files.update`
+and a file that is not closed or cancelled; otherwise the tab is read-only and says why.
+
+* **Containers:** the server enforces ISO 6346. A number that is not in ISO format is refused with a message; the
+  form then offers an explicit "record anyway" checkbox. A wrong check digit is always refused (it is a typo). When
+  editing, the number is only sent if it changed, so an already-recorded non-standard number does not need re-confirming.
+* **Goods:** with both quantity and unit price the server computes the line total, so the field is disabled; a price needs a currency.
+* **Numbers** (weights, quantities, prices) are typed as plain decimals and sent as strings; they are never converted to floats.
+* Not yet on this tab: shipping agent / freight forwarder pickers (shown read-only), HS code picker (no codes are seeded), deleting entries.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -95,6 +107,5 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 
 ## Next
 
-The remaining tabs of the file page (shipments, containers and goods; documents with upload and checklist; tasks;
-invoices and payments; expenses); client details and forms; tasks and
+The remaining tabs of the file page (documents with upload and checklist; tasks; invoices and payments; expenses); client details and forms; tasks and
 documents; finance screens; reports, users and settings; code-splitting (the bundle is about 611 kB).

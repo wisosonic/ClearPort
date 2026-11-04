@@ -159,7 +159,8 @@
     "tabs": {
       "overview": "نظرة عامة",
       "activity": "النشاط",
-      "stages": "سجل المراحل"
+      "stages": "سجل المراحل",
+      "shipments": "الشحنات"
     },
     "summary": {
       "title": "الملخص",
@@ -197,5 +198,57 @@
       "COMPANY": "شركة",
       "INDIVIDUAL": "فرد"
     }
+  },
+  "ship": {
+    "add": "إضافة شحنة",
+    "addContainer": "إضافة حاوية",
+    "addGoods": "إضافة بند بضاعة",
+    "containers": "الحاويات",
+    "goods": "البضاعة",
+    "noContainers": "لا توجد حاويات بعد",
+    "noGoods": "لا توجد بنود بضاعة بعد",
+    "readOnly": "هذا الملف مغلق أو ملغى، لذلك لا يمكن تعديل شحناته.",
+    "type": "نوع الشحنة",
+    "vessel": "الباخرة",
+    "voyage": "الرحلة",
+    "bl": "بوليصة الشحن",
+    "masterBl": "البوليصة الرئيسية",
+    "houseBl": "البوليصة الفرعية",
+    "originPort": "ميناء الشحن",
+    "destinationPort": "ميناء التفريغ",
+    "portSearch": "ابحث عن ميناء",
+    "agent": "الوكيل البحري",
+    "etd": "موعد المغادرة",
+    "eta": "موعد الوصول",
+    "actualArrival": "الوصول الفعلي",
+    "notes": "ملاحظات",
+    "containerNumber": "رقم الحاوية",
+    "containerType": "النوع",
+    "seal": "رقم الختم",
+    "grossWeight": "الوزن القائم",
+    "netWeight": "الوزن الصافي",
+    "packages": "الطرود",
+    "nonStandard": "سجّل هذا الرقم رغم أنه ليس رقم حاوية قياسياً وفق ISO 6346",
+    "nonStandardHint": "الرقم بصيغة ISO مع خانة تحقق خاطئة يُرفض دائماً: فهو خطأ طباعي.",
+    "containerStatuses": {
+      "PLANNED": "مخططة",
+      "AT_PORT": "في الميناء",
+      "RELEASED": "مفرج عنها",
+      "DELIVERED": "مسلّمة",
+      "RETURNED": "مُعادة"
+    },
+    "description": "الوصف",
+    "originCountry": "المنشأ",
+    "quantity": "الكمية",
+    "unit": "الوحدة",
+    "unitPrice": "سعر الوحدة",
+    "lineTotal": "إجمالي البند",
+    "currency": "العملة",
+    "autoTotal": "يُحسب من الكمية × سعر الوحدة",
+    "invalidNumber": "أدخل رقماً مثل 12.5",
+    "invalidCountry": "حرفان، مثل LB",
+    "numberRequired": "أدخل رقم الحاوية",
+    "descriptionRequired": "صِف البضاعة",
+    "currencyRequired": "اختر عملة السعر"
   }
 }

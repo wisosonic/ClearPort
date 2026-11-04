@@ -155,7 +155,8 @@
     "tabs": {
       "overview": "Overview",
       "activity": "Activity",
-      "stages": "Stage history"
+      "stages": "Stage history",
+      "shipments": "Shipments"
     },
     "summary": {
       "title": "Summary",
@@ -193,5 +194,57 @@
       "COMPANY": "Company",
       "INDIVIDUAL": "Individual"
     }
+  },
+  "ship": {
+    "add": "Add shipment",
+    "addContainer": "Add container",
+    "addGoods": "Add goods line",
+    "containers": "Containers",
+    "goods": "Goods",
+    "noContainers": "No containers yet",
+    "noGoods": "No goods lines yet",
+    "readOnly": "This file is closed or cancelled, so its shipments cannot be changed.",
+    "type": "Shipment type",
+    "vessel": "Vessel",
+    "voyage": "Voyage",
+    "bl": "Bill of lading",
+    "masterBl": "Master BL",
+    "houseBl": "House BL",
+    "originPort": "Port of loading",
+    "destinationPort": "Port of discharge",
+    "portSearch": "Search ports",
+    "agent": "Shipping agent",
+    "etd": "ETD",
+    "eta": "ETA",
+    "actualArrival": "Actual arrival",
+    "notes": "Notes",
+    "containerNumber": "Container no.",
+    "containerType": "Type",
+    "seal": "Seal no.",
+    "grossWeight": "Gross weight",
+    "netWeight": "Net weight",
+    "packages": "Packages",
+    "nonStandard": "Record this number even though it is not a standard ISO 6346 container number",
+    "nonStandardHint": "A number in ISO format with a wrong check digit is always rejected: that is a typo.",
+    "containerStatuses": {
+      "PLANNED": "Planned",
+      "AT_PORT": "At port",
+      "RELEASED": "Released",
+      "DELIVERED": "Delivered",
+      "RETURNED": "Returned"
+    },
+    "description": "Description",
+    "originCountry": "Origin",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "unitPrice": "Unit price",
+    "lineTotal": "Line total",
+    "currency": "Currency",
+    "autoTotal": "Calculated from quantity × unit price",
+    "invalidNumber": "Enter a number such as 12.5",
+    "invalidCountry": "Two letters, for example LB",
+    "numberRequired": "Enter the container number",
+    "descriptionRequired": "Describe the goods",
+    "currencyRequired": "Choose a currency for the price"
   }
 }
