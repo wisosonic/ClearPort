@@ -1,4 +1,4 @@
-import { forwardRef, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/cn';
@@ -93,3 +93,11 @@ export function Pagination({ page, limit, total, onPage }: { page: number; limit
 
 export const Th = ({ className, ...p }: HTMLAttributes<HTMLTableCellElement>) => <th scope="col" className={cn('px-4 py-2 text-start text-xs font-semibold uppercase tracking-wide text-slate-500', className)} {...p} />;
 export const Td = ({ className, ...p }: HTMLAttributes<HTMLTableCellElement>) => <td className={cn('px-4 py-3 text-sm text-slate-800', className)} {...p} />;
+
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(({ className, ...p }, ref) => <textarea ref={ref} rows={3} className={cn(field, className)} {...p} />);
+Textarea.displayName = 'Textarea';
+
+export function Alert({ tone = 'red', children }: { tone?: 'red' | 'amber' | 'green' | 'blue'; children: ReactNode }) {
+  const styles = { red: 'border-red-200 bg-red-50 text-red-800', amber: 'border-amber-200 bg-amber-50 text-amber-900', green: 'border-green-200 bg-green-50 text-green-800', blue: 'border-blue-200 bg-blue-50 text-blue-900' };
+  return <div role={tone === 'red' ? 'alert' : 'status'} className={cn('rounded-md border px-3 py-2 text-sm', styles[tone])}>{children}</div>;
+}

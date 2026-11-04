@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 30 tests
+npm test -w frontend   # 48 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -64,9 +64,26 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 |---|---|
 | `/login` | done (wrong password, office selection) |
 | `/` Dashboard | done: file counts, my tasks, finance block only with finance permissions |
-| `/files` Clearance files | list with search, filters and paging |
+| `/files` Clearance files | list with search, filters and paging; **New file** button with the create permission |
+| `/files/new` | create form: client search, type, priority, branch, arrival date, customs reference, notes |
+| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts, shipments), Activity, Stage history |
 | `/clients` Clients | list with search and paging |
 | shipments, documents, tasks, invoices, payments, expenses, accounting, reports, users, settings | placeholder |
+
+## Clearance file workspace
+
+* **Create** (`NewFilePage`): the server generates the file number and picks the workflow; the form only sends
+  what the person filled in, and the server's refusal (for example an inactive client) is shown as-is.
+* **Stage panel** (`StagePanel`): lists the moves the workflow allows (`GET /transitions`). A move that is not
+  allowed is disabled and the reasons are listed (missing documents, open tasks, approval). A move that needs a
+  reason asks for it first. Once the file is at its final stage, people with `clearance_files.close` see the
+  closure check; unpaid invoices need an explicit acknowledgement. Closed files can be reopened with a reason.
+* **Assignment** (`AssignControl`): with `clearance_files.assign`, assign to yourself or unassign; picking another
+  employee needs `users.manage` because the user list is restricted.
+* **Edit**: priority, expected arrival, customs reference and notes (the client and branch are not editable here).
+  Closed and cancelled files are read-only.
+* The activity timeline texts and some blocker messages are written by the server in English; known blocker
+  codes are translated, the rest show the server text.
 
 ## Adding a screen
 
@@ -78,6 +95,6 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 
 ## Next
 
-Clearance-file create form and detail workspace (tabs: overview, shipments/containers/goods, documents,
-tasks, invoices and payments, expenses, activity, status transitions); client details and forms; tasks and
+The remaining tabs of the file page (shipments, containers and goods; documents with upload and checklist; tasks;
+invoices and payments; expenses); client details and forms; tasks and
 documents; finance screens; reports, users and settings; code-splitting (the bundle is about 611 kB).

@@ -1,0 +1,67 @@
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { api, ApiError } from '@/lib/api-client';
+import { cn } from '@/lib/cn';
+import { Badge, Card, ErrorState, Spinner } from '@/components/ui/primitives';
+import { AssignControl } from '../components/AssignControl';
+import { ActivityTab, StageHistoryTab } from '../components/HistoryTabs';
+import { OverviewTab } from '../components/OverviewTab';
+import { StagePanel } from '../components/StagePanel';
+import { priorityTone, statusTone, type FileDetail } from '../lib';
+
+const TABS = ['overview', 'activity', 'stages'] as const;
+type Tab = (typeof TABS)[number];
+
+export function FileDetailPage() {
+  const { t } = useTranslation();
+  const { id = '' } = useParams();
+  const [tab, setTab] = useState<Tab>('overview');
+  const q = useQuery({ queryKey: ['file', id], queryFn: ({ signal }) => api.get<FileDetail>(`/clearance-files/${id}`, undefined, signal) });
+
+  if (q.isPending) return <Spinner />;
+  if (q.isError) {
+    if (q.error instanceof ApiError && q.error.status === 404) return <p className="p-8 text-center text-slate-600">{t('files.notFound')}</p>;
+    return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
+  }
+  const file = q.data;
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <Link to="/files" className="text-sm text-brand-700 hover:underline">{t('files.title')}</Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-xl font-semibold tabular-nums" dir="ltr">{file.fileNumber}</h1>
+          <Badge tone={statusTone[file.status]}>{t(`files.statuses.${file.status}`)}</Badge>
+          <Badge tone={priorityTone[file.priority as keyof typeof priorityTone] ?? 'neutral'}>{t(`files.priorities.${file.priority}`)}</Badge>
+          <span className="text-sm text-slate-600" dir="auto">{file.client.name}</span>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2"><StagePanel file={file} /></div>
+        <Card className="p-5">
+          <h2 className="mb-2 text-sm font-semibold text-slate-700">{t('files.assignee')}</h2>
+          <AssignControl file={file} />
+        </Card>
+      </div>
+
+      <div role="tablist" aria-label={t('files.sections')} className="flex gap-1 border-b border-slate-200">
+        {TABS.map((k) => (
+          <button
+            key={k} role="tab" type="button" aria-selected={tab === k} onClick={() => setTab(k)}
+            className={cn('-mb-px border-b-2 px-4 py-2 text-sm font-medium', tab === k ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-600 hover:text-slate-900')}
+          >
+            {t(`files.tabs.${k}`)}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel">
+        {tab === 'overview' && <OverviewTab file={file} />}
+        {tab === 'activity' && <ActivityTab fileId={file.id} />}
+        {tab === 'stages' && <StageHistoryTab fileId={file.id} />}
+      </div>
+    </div>
+  );
+}

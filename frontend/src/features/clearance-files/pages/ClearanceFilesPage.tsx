@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api-client';
+import { can } from '@/lib/permissions';
+import { useAuth } from '@/features/auth/auth';
 import { formatDate, fullName, type Locale } from '@/lib/format';
 import { useDebounced } from '@/hooks/useDebounced';
 import { Badge, Card, EmptyState, ErrorState, Input, Pagination, Select, Spinner, Td, Th } from '@/components/ui/primitives';
@@ -21,6 +24,7 @@ const LIMIT = 20;
 export function ClearanceFilesPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language as Locale;
+  const { permissions } = useAuth();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [assigned, setAssigned] = useState('');
@@ -36,7 +40,10 @@ export function ClearanceFilesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">{t('files.title')}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">{t('files.title')}</h1>
+        {can(permissions, 'clearance_files.create') && <Link to="/files/new" className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"><Plus className="size-4" aria-hidden />{t('files.new')}</Link>}
+      </div>
       <div className="flex flex-wrap gap-3">
         <div className="relative min-w-60 flex-1">
           <Search className="pointer-events-none absolute start-3 top-2.5 size-4 text-slate-400" aria-hidden />
@@ -65,7 +72,7 @@ export function ClearanceFilesPage() {
                 <tbody className="divide-y divide-slate-100">
                   {q.data.data.map((f) => (
                     <tr key={f.id} className="hover:bg-slate-50">
-                      <Td className="font-medium tabular-nums" dir="ltr">{f.fileNumber}</Td>
+                      <Td className="font-medium tabular-nums" dir="ltr"><Link to={`/files/${f.id}`} className="text-brand-700 hover:underline">{f.fileNumber}</Link></Td>
                       <Td dir="auto">{f.client.name}</Td>
                       <Td>{t(`files.types.${f.fileType}`)}</Td>
                       <Td dir="auto">{f.currentStage ? (locale === 'ar' && f.currentStage.nameAr ? f.currentStage.nameAr : f.currentStage.nameEn) : '—'}</Td>

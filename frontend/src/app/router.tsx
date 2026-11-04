@@ -6,6 +6,8 @@ import { Spinner } from '@/components/ui/primitives';
 import { useAuth } from '@/features/auth/auth';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ClearanceFilesPage } from '@/features/clearance-files/pages/ClearanceFilesPage';
+import { FileDetailPage } from '@/features/clearance-files/pages/FileDetailPage';
+import { NewFilePage } from '@/features/clearance-files/pages/NewFilePage';
 import { ClientsPage } from '@/features/clients/pages/ClientsPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { DashboardLayout } from './layouts/DashboardLayout';
@@ -43,6 +45,8 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'files', element: guard(['clearance_files.view'], <ClearanceFilesPage />) },
+      { path: 'files/new', element: guard(['clearance_files.create'], <NewFilePage />) },
+      { path: 'files/:id', element: guard(['clearance_files.view'], <FileDetailPage />) },
       { path: 'clients', element: guard(['clients.view'], <ClientsPage />) },
       ...comingSoon,
       { path: '*', element: <Message k="common.notFound" /> },
