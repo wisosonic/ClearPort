@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 176 tests
+npm test -w frontend   # 191 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -71,7 +71,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/clients/new`, `/clients/:id` | create form; client page with tabs Details (edit, deactivate), Contacts, Files, Account |
 | `/invoices`, `/payments` | every invoice / payment in the office with filters (status, type, unpaid/overdue, unapplied, dates, search); rows link to the client and the file, where changes are made |
 | `/reports` Reports | one page for clearance files, client balances, expenses, revenue and employee performance; filters, totals, export |
-| `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal) and Trial balance |
+| `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal), Trial balance, Chart of accounts, Cash and bank, Exchange rates |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
 | shipments, documents, expenses, users, settings | placeholder |
 
@@ -193,7 +193,11 @@ Needs `accounting.view`; posting and reversing need `accounting.post`.
 * **Reverse:** only a *posted manual* entry, with a reason. Entries created by an invoice, payment or expense say so and must be undone by cancelling or reversing that record, which keeps
   the record and the ledger in agreement.
 * **Trial balance:** per account debit, credit and balance in the base currency, as of a date, with a clear warning if the ledger is ever out of balance.
-* Still to come on this screen: chart of accounts, cash accounts, exchange rates.
+* **Chart of accounts:** add an account (3-10 digit code, name, type, optional parent), rename, deactivate. The code and type are fixed once created because postings rely on them.
+* **Cash and bank** (needs `payments.view`, as the API requires): each account's balance in its own currency, add (name, type, currency; the currency cannot change later), rename, deactivate.
+  Adding one also creates its ledger account.
+* **Exchange rates:** each shown in plain words ("1 USD = 89500 LBP"). Rates are **append-only**: there is no edit; to correct a rate, record a new one (the latest in force on a date is used).
+  The base currency has no rate. Leave the convention on *Automatic* unless you know you need the other.
 
 ## Adding a screen
 
@@ -205,4 +209,4 @@ Needs `accounting.view`; posting and reversing need `accounting.post`.
 
 ## Next
 
-The remaining office-wide lists (shipments, documents, expenses), the rest of accounting (chart of accounts, cash accounts, exchange rates); users and settings; code-splitting (the bundle is about 611 kB).
+The remaining office-wide lists (shipments, documents, expenses), users and settings; code-splitting (the bundle is about 611 kB).

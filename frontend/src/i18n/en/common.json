@@ -557,7 +557,10 @@
     "title": "Accounting",
     "tabs": {
       "journal": "Journal",
-      "trial": "Trial balance"
+      "trial": "Trial balance",
+      "chart": "Chart of accounts",
+      "cash": "Cash and bank",
+      "rates": "Exchange rates"
     },
     "asOf": "As of",
     "unbalanced": "The ledger is out of balance. Contact support.",
@@ -600,6 +603,35 @@
     "difference": "Difference: {{amount}}",
     "reverse": "Reverse entry",
     "reverseReason": "Reason for reversing this entry",
-    "sourceManaged": "This entry was created automatically ({{source}}); cancel or reverse that record instead."
+    "sourceManaged": "This entry was created automatically ({{source}}); cancel or reverse that record instead.",
+    "addAccount": "Add account",
+    "code": "Code",
+    "codeHint": "3 to 10 digits",
+    "codeInvalid": "Enter 3 to 10 digits",
+    "nameShort": "Enter a name (2 characters or more)",
+    "parent": "Parent",
+    "noAccounts": "No accounts.",
+    "addCash": "Add cash or bank account",
+    "cashKinds": {
+      "CASHBOX": "Cashbox",
+      "BANK": "Bank",
+      "OTHER": "Other"
+    },
+    "cashCurrencyHint": "Cannot be changed later",
+    "ledger": "Ledger account",
+    "noCash": "No cash or bank accounts yet.",
+    "recordRate": "Record exchange rate",
+    "rateAppendOnly": "Rates are never edited: to correct one, record a new rate. The latest rate in force on a date is used.",
+    "pickCurrency": "Choose a currency",
+    "rate": "Rate",
+    "rateInvalid": "Enter a rate above zero, up to 10 decimals",
+    "convention": "Rate is",
+    "automatic": "Automatic",
+    "conventionHint": "Automatic suits most currencies; pounds-style currencies with no decimals are quoted per 1 base unit.",
+    "basePerForeign": "{{base}} per 1 foreign unit",
+    "foreignPerBase": "Foreign units per 1 {{base}}",
+    "rateSource": "Source",
+    "noRates": "No exchange rates recorded yet.",
+    "effective": "Effective from"
   }
 }
