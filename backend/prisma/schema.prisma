@@ -1,0 +1,1318 @@
+// ClearPort — Prisma schema (SQLite)
+//
+// Conventions (see spec sections 6, 9, 10):
+//  * Primary keys are UUID strings.
+//  * Money / exchange rates are STORED AS TEXT decimal strings (String) — never floats.
+//    Compute only through decimal.js (see src/common/money.ts).
+//  * Every tenant-owned model carries tenantId (NOT NULL) and exposes @@unique([tenantId, id])
+//    so child tables can use composite FKs (tenantId, xId) -> (tenantId, id).
+//    This makes cross-tenant references impossible at the database level.
+//  * Optional composite FKs use onDelete: Restrict (SetNull would null tenantId).
+//  * System-defined rows (roles, document types, templates) have tenantId = NULL.
+//    SQLite treats NULLs as distinct in UNIQUE, so partial unique indexes for the
+//    NULL-tenant rows are created in a hand-written migration.
+//  * Financial rows are never physically deleted (status / reversal flows instead).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ───────────────────────────── Enums ─────────────────────────────
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ClientType {
+  COMPANY
+  INDIVIDUAL
+}
+
+enum FileType {
+  IMPORT
+  EXPORT
+  OTHER
+}
+
+enum FileStatus {
+  OPEN
+  ON_HOLD
+  CLOSED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum PortType {
+  SEA
+  AIR
+  LAND
+  OTHER
+}
+
+enum ShipmentType {
+  SEA
+  AIR
+  LAND
+  OTHER
+}
+
+enum ContainerStatus {
+  PLANNED
+  AT_PORT
+  RELEASED
+  DELIVERED
+  RETURNED
+}
+
+enum DocumentStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  VOID
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum CategoryType {
+  CUSTOMS_DUTY_TAX
+  PORT_FEE
+  SHIPPING_FEE
+  TRANSPORTATION
+  SERVICE_FEE
+  INSPECTION
+  STORAGE
+  OTHER
+}
+
+// Who ultimately bears the cost of a category (spec 6.2 / 6.5)
+enum CostTreatment {
+  PASS_THROUGH
+  OFFICE_EXPENSE
+  OFFICE_REVENUE
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+}
+
+enum ExpenseStatus {
+  DRAFT
+  APPROVED
+  CANCELLED
+}
+
+enum InvoiceType {
+  ADVANCE
+  SUPPLEMENTARY
+  FINAL
+  STANDARD
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  CANCELLED
+}
+
+enum PaymentType {
+  CLIENT_PAYMENT
+  CLIENT_ADVANCE
+  SUPPLIER_PAYMENT
+  REIMBURSEMENT
+  REFUND
+}
+
+enum RecordStatus {
+  DRAFT
+  POSTED
+  CANCELLED
+  REVERSED
+}
+
+enum CashAccountType {
+  CASHBOX
+  BANK
+  OTHER
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  REVERSED
+}
+
+// Convention for exchange rates (spec 6.1). rate is always expressed as
+// "units of baseCurrency per 1 unit of transaction currency" unless stated otherwise.
+enum RateConvention {
+  BASE_PER_FOREIGN
+  FOREIGN_PER_BASE
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+}
+
+// ───────────────────── Identity and tenancy (11.1) ─────────────────────
+
+model Tenant {
+  id              String       @id @default(uuid())
+  name            String
+  slug            String       @unique
+  legalName       String?
+  email           String?
+  phone           String?
+  address         String?
+  defaultCurrency String // ISO 4217 base currency
+  timezone        String       @default("Asia/Beirut")
+  locale          String       @default("en")
+  status          TenantStatus @default(ACTIVE)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  tenantUsers           TenantUser[]
+  branches              Branch[]
+  roles                 Role[]
+  userRoles             UserRole[]
+  refreshSessions       RefreshSession[]
+  clients               Client[]
+  clientContacts        ClientContact[]
+  businessParties       BusinessParty[]
+  clearanceFiles        ClearanceFile[]
+  shipments             Shipment[]
+  containers            Container[]
+  goodsItems            GoodsItem[]
+  documentTypes         DocumentType[]
+  documents             Document[]
+  documentVersions      DocumentVersion[]
+  documentRequirements  DocumentRequirement[]
+  workflowTemplates     WorkflowTemplate[]
+  workflowStages        WorkflowStage[]
+  workflowTransitions   WorkflowTransition[]
+  fileStatusHistory     FileStatusHistory[]
+  tasks                 Task[]
+  fileActivities        FileActivity[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]
+  exchangeRates         ExchangeRate[]
+  financialCategories   FinancialCategory[]
+  expenses              Expense[]
+  invoices              Invoice[]
+  invoiceItems          InvoiceItem[]
+  payments              Payment[]
+  paymentAllocations    PaymentAllocation[]
+  cashAccounts          CashAccount[]
+  chartOfAccounts       ChartOfAccount[]
+  journalEntries        JournalEntry[]
+  journalEntryLines     JournalEntryLine[]
+  systemSettings        SystemSetting[]
+  notificationTemplates NotificationTemplate[]
+  numberSequences       NumberSequence[]
+  jobs                  Job[]
+
+  @@map("tenants")
+}
+
+// Global user identity; membership is per tenant via TenantUser.
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String // Argon2id
+  firstName    String
+  lastName     String
+  phone        String?
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  memberships TenantUser[]
+  sessions    RefreshSession[]
+
+  @@map("users")
+}
+
+model TenantUser {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String
+  branchId  String?
+  isActive  Boolean  @default(true)
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  branch Branch? @relation(fields: [tenantId, branchId], references: [tenantId, id], onDelete: Restrict)
+
+  userRoles     UserRole[]
+  assignedFiles ClearanceFile[] @relation("FileAssignee")
+  createdFiles  ClearanceFile[] @relation("FileCreator")
+  assignedTasks Task[]          @relation("TaskAssignee")
+  createdTasks  Task[]          @relation("TaskCreator")
+
+  @@unique([tenantId, userId])
+  @@unique([tenantId, id])
+  @@index([userId])
+  @@map("tenant_users")
+}
+
+model Branch {
+  id        String   @id @default(uuid())
+  tenantId  String
+  code      String
+  name      String
+  address   String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  members        TenantUser[]
+  userRoles      UserRole[]
+  clearanceFiles ClearanceFile[]
+
+  @@unique([tenantId, code])
+  @@unique([tenantId, id])
+  @@map("branches")
+}
+
+// tenantId NULL = system-defined role (Owner, Admin, ...)
+model Role {
+  id          String  @id @default(uuid())
+  tenantId    String?
+  name        String
+  code        String
+  description String?
+  isSystem    Boolean @default(false)
+
+  tenant      Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  permissions RolePermission[]
+  userRoles   UserRole[]
+
+  @@unique([tenantId, code])
+  @@map("roles")
+}
+
+model Permission {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  description String?
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// The role itself may be a system role (tenantId NULL), so roleId is a plain FK;
+// the service layer must verify role.tenantId IS NULL OR role.tenantId = tenantId.
+// The membership FK is composite, which guarantees the user belongs to that tenant.
+model UserRole {
+  id       String  @id @default(uuid())
+  tenantId String
+  userId   String
+  roleId   String
+  branchId String? // optional branch scope
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  membership TenantUser @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: Cascade)
+  branch     Branch?    @relation(fields: [tenantId, branchId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, userId, roleId])
+  @@index([tenantId, userId])
+  @@map("user_roles")
+}
+
+// Hashed refresh tokens only — raw tokens are never stored.
+model RefreshSession {
+  id           String    @id @default(uuid())
+  userId       String
+  tenantId     String? // active tenant for this session, if selected
+  tokenHash    String    @unique
+  familyId     String // rotation family; reuse of a revoked token revokes the family
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  userAgent    String?
+  ipAddress    String?
+  createdAt    DateTime  @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_sessions")
+}
+
+// ───────────────────────────── CRM (11.2) ─────────────────────────────
+
+model Client {
+  id                 String     @id @default(uuid())
+  tenantId           String
+  clientCode         String
+  clientType         ClientType @default(COMPANY)
+  name               String
+  legalName          String?
+  taxNumber          String?
+  registrationNumber String?
+  phone              String?
+  email              String?
+  address            String?
+  countryCode        String?
+  paymentTermsDays   Int        @default(0)
+  creditLimit        String? // decimal string
+  notes              String?
+  isActive           Boolean    @default(true)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  contacts       ClientContact[]
+  clearanceFiles ClearanceFile[]
+  invoices       Invoice[]
+  payments       Payment[]
+
+  @@unique([tenantId, clientCode])
+  @@unique([tenantId, id])
+  @@index([tenantId, name])
+  @@map("clients")
+}
+
+model ClientContact {
+  id        String   @id @default(uuid())
+  tenantId  String
+  clientId  String
+  name      String
+  position  String?
+  phone     String?
+  email     String?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  client Client @relation(fields: [tenantId, clientId], references: [tenantId, id], onDelete: Cascade)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, clientId])
+  @@map("client_contacts")
+}
+
+// Shipping agents, forwarders, suppliers, transporters... Separate from clients; a company
+// may exist in both tables.
+model BusinessParty {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  partyType   String // SHIPPING_AGENT | FREIGHT_FORWARDER | SUPPLIER | TRANSPORTER | OTHER
+  taxNumber   String?
+  phone       String?
+  email       String?
+  address     String?
+  countryCode String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  asShippingAgent    Shipment[] @relation("ShipmentAgent")
+  asFreightForwarder Shipment[] @relation("ShipmentForwarder")
+  expenses           Expense[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, name])
+  @@map("business_parties")
+}
+
+// ───────────────────────── Clearance (11.3) ─────────────────────────
+
+model ClearanceFile {
+  id                 String     @id @default(uuid())
+  tenantId           String
+  fileNumber         String
+  fileType           FileType
+  clientId           String
+  branchId           String?
+  assignedTo         String? // user id, must be an active member of the tenant
+  workflowTemplateId String?
+  openedAt           DateTime   @default(now())
+  expectedArrivalAt  DateTime?
+  closedAt           DateTime?
+  currentStageId     String?
+  status             FileStatus @default(OPEN)
+  priority           Priority   @default(NORMAL)
+  customsReference   String?
+  internalNotes      String?
+  createdBy          String
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  client           Client            @relation(fields: [tenantId, clientId], references: [tenantId, id], onDelete: Restrict)
+  branch           Branch?           @relation(fields: [tenantId, branchId], references: [tenantId, id], onDelete: Restrict)
+  assignee         TenantUser?       @relation("FileAssignee", fields: [tenantId, assignedTo], references: [tenantId, userId], onDelete: Restrict)
+  creator          TenantUser        @relation("FileCreator", fields: [tenantId, createdBy], references: [tenantId, userId], onDelete: Restrict)
+  workflowTemplate WorkflowTemplate? @relation(fields: [tenantId, workflowTemplateId], references: [tenantId, id], onDelete: Restrict)
+  currentStage     WorkflowStage?    @relation("FileCurrentStage", fields: [tenantId, currentStageId], references: [tenantId, id], onDelete: Restrict)
+
+  shipments     Shipment[]
+  documents     Document[]
+  statusHistory FileStatusHistory[]
+  tasks         Task[]
+  activities    FileActivity[]
+  expenses      Expense[]
+  invoices      Invoice[]
+  payments      Payment[]
+  journalLines  JournalEntryLine[]
+
+  @@unique([tenantId, fileNumber])
+  @@unique([tenantId, id])
+  @@index([tenantId, status])
+  @@index([tenantId, clientId])
+  @@index([tenantId, assignedTo])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([tenantId, customsReference])
+  @@map("clearance_files")
+}
+
+// Atomic allocation of file / invoice / payment / journal numbers.
+// Allocate inside BEGIN IMMEDIATE: UPDATE ... SET last_value = last_value + 1 RETURNING.
+model NumberSequence {
+  id        String   @id @default(uuid())
+  tenantId  String
+  docType   String // IMP | EXP | OTH | INV | PAY | JE ...
+  year      Int
+  lastValue Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, docType, year])
+  @@map("number_sequences")
+}
+
+model Shipment {
+  id                 String       @id @default(uuid())
+  tenantId           String
+  clearanceFileId    String
+  shipmentType       ShipmentType @default(SEA)
+  vesselName         String?
+  voyageNumber       String?
+  billOfLadingNumber String?
+  masterBlNumber     String?
+  houseBlNumber      String?
+  shippingAgentId    String?
+  freightForwarderId String?
+  originPortId       String?
+  destinationPortId  String?
+  etd                DateTime?
+  eta                DateTime?
+  actualArrivalAt    DateTime?
+  notes              String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  clearanceFile    ClearanceFile  @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+  shippingAgent    BusinessParty? @relation("ShipmentAgent", fields: [tenantId, shippingAgentId], references: [tenantId, id], onDelete: Restrict)
+  freightForwarder BusinessParty? @relation("ShipmentForwarder", fields: [tenantId, freightForwarderId], references: [tenantId, id], onDelete: Restrict)
+  originPort       Port?          @relation("OriginPort", fields: [originPortId], references: [id], onDelete: Restrict)
+  destinationPort  Port?          @relation("DestinationPort", fields: [destinationPortId], references: [id], onDelete: Restrict)
+
+  containers Container[]
+  goodsItems GoodsItem[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, clearanceFileId])
+  @@index([tenantId, billOfLadingNumber])
+  @@index([tenantId, masterBlNumber])
+  @@index([tenantId, houseBlNumber])
+  @@map("shipments")
+}
+
+model Container {
+  id              String          @id @default(uuid())
+  tenantId        String
+  shipmentId      String
+  containerNumber String // validated against ISO 6346 where applicable
+  containerType   String?
+  sealNumber      String?
+  grossWeight     String? // decimal(18,3) as text
+  netWeight       String?
+  packageCount    Int?
+  status          ContainerStatus @default(PLANNED)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  shipment Shipment @relation(fields: [tenantId, shipmentId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, shipmentId, containerNumber])
+  @@index([tenantId, containerNumber])
+  @@map("containers")
+}
+
+model GoodsItem {
+  id              String   @id @default(uuid())
+  tenantId        String
+  shipmentId      String
+  description     String
+  hsCodeId        String?
+  countryOfOrigin String?
+  quantity        String? // decimal(18,4) as text
+  unitOfMeasure   String?
+  grossWeight     String?
+  netWeight       String?
+  unitPrice       String? // decimal(20,4) as text
+  lineTotal       String?
+  currencyCode    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  shipment Shipment  @relation(fields: [tenantId, shipmentId], references: [tenantId, id], onDelete: Restrict)
+  hsCode   HsCode?   @relation(fields: [hsCodeId], references: [id], onDelete: Restrict)
+  currency Currency? @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, shipmentId])
+  @@map("goods_items")
+}
+
+// Global reference data (no tenant).
+model Port {
+  id          String   @id @default(uuid())
+  code        String   @unique // UN/LOCODE, e.g. LBBEY
+  name        String
+  countryCode String
+  portType    PortType @default(SEA)
+
+  originOf      Shipment[] @relation("OriginPort")
+  destinationOf Shipment[] @relation("DestinationPort")
+
+  @@index([countryCode])
+  @@map("ports")
+}
+
+// ─────────────────────────── Documents (11.4) ───────────────────────────
+
+// tenantId NULL = system default type
+model DocumentType {
+  id          String  @id @default(uuid())
+  tenantId    String?
+  code        String
+  nameEn      String
+  nameAr      String
+  description String?
+  isActive    Boolean @default(true)
+
+  tenant       Tenant?               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  documents    Document[]
+  requirements DocumentRequirement[]
+
+  @@unique([tenantId, code])
+  @@map("document_types")
+}
+
+model Document {
+  id               String         @id @default(uuid())
+  tenantId         String
+  clearanceFileId  String
+  documentTypeId   String
+  originalFilename String
+  storageKey       String // internal only — never returned by the API
+  mimeType         String
+  fileSize         BigInt
+  checksum         String // SHA-256 hex
+  versionNumber    Int            @default(1)
+  uploadedBy       String
+  uploadedAt       DateTime       @default(now())
+  status           DocumentStatus @default(PENDING_REVIEW)
+  notes            String?
+  deletedAt        DateTime? // soft delete / void
+
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  clearanceFile ClearanceFile     @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+  documentType  DocumentType      @relation(fields: [documentTypeId], references: [id], onDelete: Restrict)
+  versions      DocumentVersion[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, clearanceFileId])
+  @@map("documents")
+}
+
+model DocumentVersion {
+  id               String   @id @default(uuid())
+  tenantId         String
+  documentId       String
+  versionNumber    Int
+  storageKey       String
+  originalFilename String
+  mimeType         String?
+  fileSize         BigInt?
+  checksum         String
+  uploadedBy       String
+  createdAt        DateTime @default(now())
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  document Document @relation(fields: [tenantId, documentId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, documentId, versionNumber])
+  @@map("document_versions")
+}
+
+model DocumentRequirement {
+  id                      String   @id @default(uuid())
+  tenantId                String
+  fileType                FileType
+  documentTypeId          String
+  isRequired              Boolean  @default(true)
+  isRequiredBeforeStageId String?
+  appliesTo               String? // free label, e.g. goods category
+  conditions              Json? // optional extra rules
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  documentType   DocumentType   @relation(fields: [documentTypeId], references: [id], onDelete: Restrict)
+  requiredBefore WorkflowStage? @relation(fields: [tenantId, isRequiredBeforeStageId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, fileType])
+  @@map("document_requirements")
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Workflow and operations (11.5) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+model WorkflowTemplate {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  fileType    FileType
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  stages      WorkflowStage[]
+  transitions WorkflowTransition[]
+  files       ClearanceFile[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId, fileType])
+  @@map("workflow_templates")
+}
+
+model WorkflowStage {
+  id                 String  @id @default(uuid())
+  tenantId           String
+  workflowTemplateId String
+  code               String
+  nameEn             String
+  nameAr             String
+  sequence           Int
+  isTerminal         Boolean @default(false)
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  template WorkflowTemplate @relation(fields: [tenantId, workflowTemplateId], references: [tenantId, id], onDelete: Restrict)
+
+  outgoing         WorkflowTransition[]  @relation("TransitionFrom")
+  incoming         WorkflowTransition[]  @relation("TransitionTo")
+  currentFiles     ClearanceFile[]       @relation("FileCurrentStage")
+  historyFrom      FileStatusHistory[]   @relation("HistoryFrom")
+  historyTo        FileStatusHistory[]   @relation("HistoryTo")
+  requirementsGate DocumentRequirement[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, workflowTemplateId, code])
+  @@unique([tenantId, workflowTemplateId, sequence])
+  @@map("workflow_stages")
+}
+
+model WorkflowTransition {
+  id                    String  @id @default(uuid())
+  tenantId              String
+  workflowTemplateId    String
+  fromStageId           String
+  toStageId             String
+  requiredPermission    String?
+  requiresDocumentCheck Boolean @default(false)
+  requiresApproval      Boolean @default(false)
+  requiresReason        Boolean @default(false)
+  requiredTaskCheck     Boolean @default(false)
+
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  template  WorkflowTemplate @relation(fields: [tenantId, workflowTemplateId], references: [tenantId, id], onDelete: Restrict)
+  fromStage WorkflowStage    @relation("TransitionFrom", fields: [tenantId, fromStageId], references: [tenantId, id], onDelete: Restrict)
+  toStage   WorkflowStage    @relation("TransitionTo", fields: [tenantId, toStageId], references: [tenantId, id], onDelete: Restrict)
+
+  @@unique([tenantId, workflowTemplateId, fromStageId, toStageId])
+  @@unique([tenantId, id])
+  @@map("workflow_transitions")
+}
+
+model FileStatusHistory {
+  id              String   @id @default(uuid())
+  tenantId        String
+  clearanceFileId String
+  fromStageId     String?
+  toStageId       String
+  changedBy       String
+  reason          String?
+  changedAt       DateTime @default(now())
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  clearanceFile ClearanceFile  @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+  fromStage     WorkflowStage? @relation("HistoryFrom", fields: [tenantId, fromStageId], references: [tenantId, id], onDelete: Restrict)
+  toStage       WorkflowStage  @relation("HistoryTo", fields: [tenantId, toStageId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, clearanceFileId, changedAt])
+  @@map("file_status_history")
+}
+
+model Task {
+  id              String     @id @default(uuid())
+  tenantId        String
+  clearanceFileId String?
+  assignedTo      String
+  createdBy       String
+  title           String
+  description     String?
+  priority        Priority   @default(NORMAL)
+  status          TaskStatus @default(OPEN)
+  dueAt           DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  clearanceFile ClearanceFile? @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+  assignee      TenantUser     @relation("TaskAssignee", fields: [tenantId, assignedTo], references: [tenantId, userId], onDelete: Restrict)
+  creator       TenantUser     @relation("TaskCreator", fields: [tenantId, createdBy], references: [tenantId, userId], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, assignedTo, dueAt])
+  @@index([tenantId, clearanceFileId])
+  @@map("tasks")
+}
+
+// Human-readable business history (different from AuditLog).
+model FileActivity {
+  id              String   @id @default(uuid())
+  tenantId        String
+  clearanceFileId String
+  userId          String
+  activityType    String
+  description     String
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  clearanceFile ClearanceFile @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, clearanceFileId, createdAt(sort: Desc)])
+  @@map("file_activities")
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  tenantId  String
+  userId    String
+  type      String
+  title     String
+  body      String?
+  metadata  Json?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+// Sensitive data changes and accountability. Never store secrets or document contents.
+model AuditLog {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String?
+  beforeData  Json?
+  afterData   Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Financial (11.6) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+model Currency {
+  code          String  @id // ISO 4217
+  name          String
+  symbol        String
+  decimalPlaces Int     @default(2)
+  isActive      Boolean @default(true)
+
+  goodsItems GoodsItem[]
+  expenses   Expense[]
+  invoices   Invoice[]
+  payments   Payment[]
+  accounts   CashAccount[]
+
+  @@map("currencies")
+}
+
+// Append-only: new rates are inserted, historical rows are never updated.
+model ExchangeRate {
+  id           String         @id @default(uuid())
+  tenantId     String
+  fromCurrency String
+  toCurrency   String
+  rate         String // decimal(24,10) as text
+  convention   RateConvention @default(BASE_PER_FOREIGN)
+  effectiveAt  DateTime
+  source       String?
+  createdBy    String
+  createdAt    DateTime       @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, fromCurrency, toCurrency, effectiveAt])
+  @@index([tenantId, fromCurrency, toCurrency, effectiveAt(sort: Desc)])
+  @@map("exchange_rates")
+}
+
+model FinancialCategory {
+  id                 String        @id @default(uuid())
+  tenantId           String
+  name               String
+  categoryType       CategoryType
+  costTreatment      CostTreatment @default(PASS_THROUGH)
+  isBillableToClient Boolean       @default(true)
+  isTaxable          Boolean       @default(false) // tax (e.g. VAT) applies to invoice items of this category
+  isActive           Boolean       @default(true)
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  expenses     Expense[]
+  invoiceItems InvoiceItem[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, name])
+  @@map("financial_categories")
+}
+
+model Expense {
+  id              String         @id @default(uuid())
+  tenantId        String
+  clearanceFileId String?
+  categoryId      String
+  vendorId        String?
+  description     String
+  amount          String // decimal(20,4) text
+  currencyCode    String
+  exchangeRate    String // rate used at recording time (immutable)
+  rateConvention  RateConvention @default(BASE_PER_FOREIGN)
+  rateSource      String?
+  baseAmount      String
+  expenseDate     DateTime
+  paidBy          String         @default("OFFICE") // OFFICE | ON_BEHALF_OF_CLIENT
+  paymentStatus   PaymentStatus  @default(UNPAID)
+  status          ExpenseStatus  @default(DRAFT)
+  recordedBy      String
+  approvedBy      String?
+  approvedAt      DateTime?
+  cashAccountId   String? // cash account the expense was paid from (when paid)
+  paidAt          DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  cashAccount   CashAccount?      @relation(fields: [tenantId, cashAccountId], references: [tenantId, id], onDelete: Restrict)
+  invoiceItems  InvoiceItem[]
+  clearanceFile ClearanceFile?    @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+  category      FinancialCategory @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)
+  vendor        BusinessParty?    @relation(fields: [tenantId, vendorId], references: [tenantId, id], onDelete: Restrict)
+  currency      Currency          @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+
+  @@unique([tenantId, id])
+  @@index([tenantId, clearanceFileId])
+  @@map("expenses")
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  tenantId        String
+  clearanceFileId String
+  clientId        String
+  invoiceNumber   String
+  invoiceType     InvoiceType   @default(STANDARD)
+  issueDate       DateTime?
+  dueDate         DateTime?
+  currencyCode    String
+  subtotal        String
+  discount        String        @default("0")
+  taxAmount       String        @default("0")
+  totalAmount     String
+  status          InvoiceStatus @default(DRAFT)
+  issuedAt        DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+  // Exchange-rate snapshot taken when the invoice is issued (spec 6.1: every transaction keeps its rate)
+  exchangeRate    String?
+  rateConvention  RateConvention @default(BASE_PER_FOREIGN)
+  rateSource      String?
+  baseTotalAmount String?
+  createdBy       String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  // NOTE: no paid_amount. Derive from payment_allocations (spec 6.4).
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  clearanceFile ClearanceFile       @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+  client        Client              @relation(fields: [tenantId, clientId], references: [tenantId, id], onDelete: Restrict)
+  currency      Currency            @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+  items         InvoiceItem[]
+  allocations   PaymentAllocation[]
+
+  @@unique([tenantId, invoiceNumber])
+  @@unique([tenantId, id])
+  @@index([tenantId, clientId])
+  @@index([tenantId, clearanceFileId])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid())
+  tenantId    String
+  invoiceId   String
+  description String
+  categoryId  String?
+  quantity    String
+  unitPrice   String
+  amount      String
+  taxRate     String  @default("0") // percent snapshot, e.g. "11.0000"
+  taxAmount   String  @default("0")
+  expenseId   String? // set when the line re-bills a pass-through expense
+
+  tenant   Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice  Invoice            @relation(fields: [tenantId, invoiceId], references: [tenantId, id], onDelete: Restrict)
+  category FinancialCategory? @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)
+  expense  Expense?           @relation(fields: [tenantId, expenseId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, invoiceId])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id              String         @id @default(uuid())
+  tenantId        String
+  clientId        String?
+  clearanceFileId String?
+  paymentNumber   String
+  paymentType     PaymentType
+  amount          String
+  currencyCode    String
+  exchangeRate    String
+  rateConvention  RateConvention @default(BASE_PER_FOREIGN)
+  rateSource      String?
+  baseAmount      String
+  paymentMethod   String // payment_methods.code
+  cashAccountId   String
+  referenceNumber String?
+  paymentDate     DateTime
+  receivedBy      String
+  status          RecordStatus   @default(DRAFT)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  client        Client?             @relation(fields: [tenantId, clientId], references: [tenantId, id], onDelete: Restrict)
+  clearanceFile ClearanceFile?      @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+  cashAccount   CashAccount         @relation(fields: [tenantId, cashAccountId], references: [tenantId, id], onDelete: Restrict)
+  currency      Currency            @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+  allocations   PaymentAllocation[]
+
+  @@unique([tenantId, paymentNumber])
+  @@unique([tenantId, id])
+  @@index([tenantId, clientId])
+  @@map("payments")
+}
+
+model PaymentAllocation {
+  id              String   @id @default(uuid())
+  tenantId        String
+  paymentId       String
+  invoiceId       String
+  allocatedAmount String // in the INVOICE currency (reduces the invoice outstanding)
+  currencyCode    String // invoice currency
+  // Cross-currency support: what the allocation consumes from the payment, in the PAYMENT currency
+  paymentAmount     String   @default("0")
+  paymentBaseAmount String   @default("0") // base value of that consumption at the payment rate
+  invoiceBaseAmount String   @default("0") // base value of the invoice share cleared at the invoice rate
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  reversedAt      DateTime? // allocations are never deleted; an undone one is marked reversed
+  reversalReason  String?
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payment Payment @relation(fields: [tenantId, paymentId], references: [tenantId, id], onDelete: Restrict)
+  invoice Invoice @relation(fields: [tenantId, invoiceId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, paymentId])
+  @@index([tenantId, invoiceId])
+  @@map("payment_allocations")
+}
+
+model CashAccount {
+  id              String          @id @default(uuid())
+  tenantId        String
+  name            String
+  accountType     CashAccountType
+  currencyCode    String
+  isActive        Boolean         @default(true)
+  ledgerAccountId String? // ledger account this cashbox or bank posts to
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  currency Currency        @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+  ledger   ChartOfAccount? @relation(fields: [tenantId, ledgerAccountId], references: [tenantId, id], onDelete: Restrict)
+  payments Payment[]
+  expenses Expense[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, name])
+  @@map("cash_accounts")
+}
+
+model ChartOfAccount {
+  id           String      @id @default(uuid())
+  tenantId     String
+  accountCode  String
+  name         String
+  accountType  AccountType
+  parentId     String?
+  currencyCode String?
+  isActive     Boolean     @default(true)
+
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  parent       ChartOfAccount?    @relation("AccountTree", fields: [tenantId, parentId], references: [tenantId, id], onDelete: Restrict)
+  children     ChartOfAccount[]   @relation("AccountTree")
+  lines        JournalEntryLine[]
+  cashAccounts CashAccount[]
+
+  @@unique([tenantId, accountCode])
+  @@unique([tenantId, id])
+  @@map("chart_of_accounts")
+}
+
+// POSTED entries are immutable (enforced by DB triggers in a migration + service layer).
+model JournalEntry {
+  id           String        @id @default(uuid())
+  tenantId     String
+  entryNumber  String
+  entryDate    DateTime
+  description  String
+  sourceType   String? // INVOICE | PAYMENT | EXPENSE | MANUAL | REVERSAL
+  sourceId     String?
+  status       JournalStatus @default(DRAFT)
+  reversalOfId String?
+  createdBy    String
+  postedAt     DateTime?
+  createdAt    DateTime      @default(now())
+
+  tenant     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  reversalOf JournalEntry?      @relation("Reversal", fields: [tenantId, reversalOfId], references: [tenantId, id], onDelete: Restrict)
+  reversedBy JournalEntry[]     @relation("Reversal")
+  lines      JournalEntryLine[]
+
+  @@unique([tenantId, entryNumber])
+  @@unique([tenantId, id])
+  @@index([tenantId, status])
+  @@index([tenantId, sourceType, sourceId])
+  @@map("journal_entries")
+}
+
+model JournalEntryLine {
+  id              String         @id @default(uuid())
+  tenantId        String
+  journalEntryId  String
+  accountId       String
+  debit           String         @default("0")
+  credit          String         @default("0")
+  currencyCode    String
+  exchangeRate    String
+  rateConvention  RateConvention @default(BASE_PER_FOREIGN)
+  baseDebit       String         @default("0")
+  baseCredit      String         @default("0")
+  clearanceFileId String?
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  journalEntry  JournalEntry   @relation(fields: [tenantId, journalEntryId], references: [tenantId, id], onDelete: Restrict)
+  account       ChartOfAccount @relation(fields: [tenantId, accountId], references: [tenantId, id], onDelete: Restrict)
+  clearanceFile ClearanceFile? @relation(fields: [tenantId, clearanceFileId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, journalEntryId])
+  @@index([tenantId, accountId])
+  @@index([tenantId, clearanceFileId])
+  @@map("journal_entry_lines")
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Reference and configuration (11.7) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+model HsCode {
+  id           String  @id @default(uuid())
+  code         String
+  jurisdiction String // e.g. WCO (international), LB (Lebanese tariff)
+  description  String
+  isActive     Boolean @default(true)
+
+  versions   HsCodeVersion[]
+  goodsItems GoodsItem[]
+
+  @@unique([jurisdiction, code])
+  @@map("hs_codes")
+}
+
+// Versioned, sourced and effective-dated. No duty rates are hardcoded (spec section 4).
+model HsCodeVersion {
+  id            String    @id @default(uuid())
+  hsCodeId      String
+  version       String
+  source        String
+  description   String?
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime  @default(now())
+
+  hsCode HsCode @relation(fields: [hsCodeId], references: [id], onDelete: Restrict)
+
+  @@unique([hsCodeId, version])
+  @@map("hs_code_versions")
+}
+
+model Country {
+  code   String @id // ISO 3166-1 alpha-2
+  nameEn String
+  nameAr String
+
+  @@map("countries")
+}
+
+model UnitOfMeasure {
+  code   String @id
+  nameEn String
+  nameAr String
+
+  @@map("units_of_measure")
+}
+
+model PaymentMethod {
+  code     String  @id
+  nameEn   String
+  nameAr   String
+  isActive Boolean @default(true)
+
+  @@map("payment_methods")
+}
+
+model SystemSetting {
+  id       String  @id @default(uuid())
+  tenantId String? // NULL = global default
+  key      String
+  value    Json
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, key])
+  @@map("system_settings")
+}
+
+model NotificationTemplate {
+  id       String  @id @default(uuid())
+  tenantId String?
+  code     String
+  locale   String  @default("en")
+  subject  String?
+  body     String
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, code, locale])
+  @@map("notification_templates")
+}
+
+// SQLite-backed background job queue (spec 18.4). tenantId NULL only for system jobs.
+model Job {
+  id          String    @id @default(uuid())
+  tenantId    String?
+  type        String
+  payload     Json
+  status      JobStatus @default(PENDING)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  runAt       DateTime  @default(now())
+  lockedAt    DateTime?
+  lockedBy    String?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([status, runAt])
+  @@index([tenantId, type])
+  @@map("jobs")
+}

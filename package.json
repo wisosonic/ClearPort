@@ -1,0 +1,19 @@
+{
+  "name": "clearport",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:seed": "npm run db:seed -w backend",
+    "test": "npm test -w backend",
+    "dev": "npm run dev -w frontend",
+    "start:api": "npm start -w backend"
+  },
+  "overrides": {
+    "multer": "^2.5.0"
+  }
+}

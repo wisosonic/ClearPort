@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #2563eb;
+  --color-brand-600: #1d4ed8;
+  --color-brand-700: #1e40af;
+  --font-sans: "Inter", "Segoe UI", "Noto Sans Arabic", "Tahoma", system-ui, sans-serif;
+}
+
+:root { color-scheme: light; --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; --muted: #64748b; --border: #e2e8f0; }
+html { background: var(--bg); color: var(--text); }
+body { margin: 0; font-family: var(--font-sans); }
+/* Directional icons (chevrons, arrows) flip in right-to-left. */
+[dir="rtl"] .rtl-flip { transform: scaleX(-1); }

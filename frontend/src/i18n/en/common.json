@@ -1,0 +1,40 @@
+{
+  "app": { "name": "ClearPort", "tagline": "Customs brokerage, organised." },
+  "nav": {
+    "dashboard": "Dashboard", "files": "Clearance Files", "clients": "Clients", "shipments": "Shipments", "documents": "Documents", "tasks": "Tasks",
+    "financial": "Financial", "invoices": "Invoices", "payments": "Payments", "expenses": "Expenses", "accounting": "Accounting",
+    "management": "Management", "reports": "Reports", "users": "Users & Roles", "settings": "Settings"
+  },
+  "auth": {
+    "signIn": "Sign in", "email": "Email", "password": "Password", "office": "Office", "officeHint": "Only needed if your email belongs to more than one office",
+    "chooseOffice": "Choose your office", "signOut": "Sign out", "signingIn": "Signing in…",
+    "invalid": "Incorrect email or password.", "rateLimited": "Too many attempts. Please wait a minute and try again.",
+    "sessionExpired": "Your session has expired. Please sign in again."
+  },
+  "common": {
+    "loading": "Loading…", "search": "Search", "retry": "Try again", "previous": "Previous", "next": "Next", "page": "Page {{page}} of {{pages}}",
+    "results_one": "{{count}} result", "results_other": "{{count}} results", "none": "Nothing here yet", "all": "All", "language": "Language", "theme": "Theme",
+    "error": "Something went wrong", "forbidden": "You do not have access to this page.", "notFound": "Page not found", "comingSoon": "This section is being built.",
+    "active": "Active", "inactive": "Inactive", "name": "Name", "status": "Status", "created": "Created", "actions": "Actions", "back": "Back", "menu": "Menu"
+  },
+  "dashboard": {
+    "title": "Dashboard", "welcome": "Welcome back, {{name}}",
+    "filesOpen": "Open files", "filesOnHold": "On hold", "filesHighPriority": "High priority", "filesUnassigned": "Unassigned",
+    "openedThisMonth": "Opened this month", "closedThisMonth": "Closed this month",
+    "myTasks": "My open tasks", "myOverdue": "My overdue tasks", "officeOverdue": "Overdue in office", "pendingReview": "Documents to review",
+    "receivables": "Receivables", "advances": "Client advances held", "unrecovered": "Unrecovered disbursements", "cash": "Cash and bank",
+    "unpaidInvoices": "Unpaid invoices", "overdueInvoices": "Overdue invoices", "financial": "Money", "operations": "Operations", "tasksAndDocs": "Tasks and documents",
+    "recent": "Recent activity", "pendingFiles": "Files that need attention"
+  },
+  "files": {
+    "title": "Clearance Files", "number": "File no.", "client": "Client", "type": "Type", "stage": "Stage", "priority": "Priority", "assignee": "Assigned to", "arrival": "Expected arrival",
+    "searchPlaceholder": "File no., client, BL, container, invoice…", "unassigned": "Unassigned", "mine": "Assigned to me",
+    "types": { "IMPORT": "Import", "EXPORT": "Export", "OTHER": "Other" },
+    "statuses": { "OPEN": "Open", "ON_HOLD": "On hold", "CLOSED": "Closed", "CANCELLED": "Cancelled" },
+    "priorities": { "LOW": "Low", "NORMAL": "Normal", "HIGH": "High", "URGENT": "Urgent" }
+  },
+  "clients": {
+    "title": "Clients", "code": "Code", "phone": "Phone", "email": "Email", "country": "Country", "searchPlaceholder": "Name, code, tax no., phone, email…",
+    "types": { "COMPANY": "Company", "INDIVIDUAL": "Individual" }
+  }
+}

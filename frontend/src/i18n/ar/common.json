@@ -1,0 +1,41 @@
+{
+  "app": { "name": "كليرپورت", "tagline": "إدارة المعاملات الجمركية بسهولة." },
+  "nav": {
+    "dashboard": "لوحة التحكم", "files": "ملفات التخليص", "clients": "العملاء", "shipments": "الشحنات", "documents": "المستندات", "tasks": "المهام",
+    "financial": "المالية", "invoices": "الفواتير", "payments": "المدفوعات", "expenses": "المصاريف", "accounting": "المحاسبة",
+    "management": "الإدارة", "reports": "التقارير", "users": "المستخدمون والأدوار", "settings": "الإعدادات"
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول", "email": "البريد الإلكتروني", "password": "كلمة المرور", "office": "المكتب", "officeHint": "مطلوب فقط إذا كان بريدك مرتبطاً بأكثر من مكتب",
+    "chooseOffice": "اختر مكتبك", "signOut": "تسجيل الخروج", "signingIn": "جارٍ تسجيل الدخول…",
+    "invalid": "البريد الإلكتروني أو كلمة المرور غير صحيحة.", "rateLimited": "محاولات كثيرة. يرجى الانتظار دقيقة ثم المحاولة مجدداً.",
+    "sessionExpired": "انتهت جلستك. يرجى تسجيل الدخول مجدداً."
+  },
+  "common": {
+    "loading": "جارٍ التحميل…", "search": "بحث", "retry": "حاول مجدداً", "previous": "السابق", "next": "التالي", "page": "صفحة {{page}} من {{pages}}",
+    "results_zero": "لا نتائج", "results_one": "نتيجة واحدة", "results_two": "نتيجتان", "results_few": "{{count}} نتائج", "results_many": "{{count}} نتيجة", "results_other": "{{count}} نتيجة",
+    "none": "لا يوجد شيء بعد", "all": "الكل", "language": "اللغة", "theme": "المظهر",
+    "error": "حدث خطأ ما", "forbidden": "ليس لديك صلاحية الوصول إلى هذه الصفحة.", "notFound": "الصفحة غير موجودة", "comingSoon": "هذا القسم قيد الإنشاء.",
+    "active": "نشط", "inactive": "غير نشط", "name": "الاسم", "status": "الحالة", "created": "تاريخ الإنشاء", "actions": "إجراءات", "back": "رجوع", "menu": "القائمة"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم", "welcome": "أهلاً بعودتك، {{name}}",
+    "filesOpen": "ملفات مفتوحة", "filesOnHold": "قيد الانتظار", "filesHighPriority": "أولوية عالية", "filesUnassigned": "غير مُسندة",
+    "openedThisMonth": "فُتحت هذا الشهر", "closedThisMonth": "أُغلقت هذا الشهر",
+    "myTasks": "مهامي المفتوحة", "myOverdue": "مهامي المتأخرة", "officeOverdue": "متأخرة في المكتب", "pendingReview": "مستندات بانتظار المراجعة",
+    "receivables": "المستحقات", "advances": "دفعات مقدّمة من العملاء", "unrecovered": "مصاريف غير مستردّة", "cash": "النقد والبنك",
+    "unpaidInvoices": "فواتير غير مدفوعة", "overdueInvoices": "فواتير متأخرة", "financial": "الأموال", "operations": "العمليات", "tasksAndDocs": "المهام والمستندات",
+    "recent": "النشاط الأخير", "pendingFiles": "ملفات تحتاج إلى متابعة"
+  },
+  "files": {
+    "title": "ملفات التخليص", "number": "رقم الملف", "client": "العميل", "type": "النوع", "stage": "المرحلة", "priority": "الأولوية", "assignee": "المسؤول", "arrival": "الوصول المتوقع",
+    "searchPlaceholder": "رقم الملف، العميل، البوليصة، الحاوية، الفاتورة…", "unassigned": "غير مُسند", "mine": "المُسندة إليّ",
+    "types": { "IMPORT": "استيراد", "EXPORT": "تصدير", "OTHER": "أخرى" },
+    "statuses": { "OPEN": "مفتوح", "ON_HOLD": "قيد الانتظار", "CLOSED": "مغلق", "CANCELLED": "ملغى" },
+    "priorities": { "LOW": "منخفضة", "NORMAL": "عادية", "HIGH": "عالية", "URGENT": "عاجلة" }
+  },
+  "clients": {
+    "title": "العملاء", "code": "الرمز", "phone": "الهاتف", "email": "البريد", "country": "البلد", "searchPlaceholder": "الاسم، الرمز، الرقم الضريبي، الهاتف، البريد…",
+    "types": { "COMPANY": "شركة", "INDIVIDUAL": "فرد" }
+  }
+}

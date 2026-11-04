@@ -1,0 +1,54 @@
+import type { ReactNode } from 'react';
+import { createBrowserRouter, createMemoryRouter, Navigate, useLocation, type RouteObject } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { canAny } from '@/lib/permissions';
+import { Spinner } from '@/components/ui/primitives';
+import { useAuth } from '@/features/auth/auth';
+import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { ClearanceFilesPage } from '@/features/clearance-files/pages/ClearanceFilesPage';
+import { ClientsPage } from '@/features/clients/pages/ClientsPage';
+import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
+import { DashboardLayout } from './layouts/DashboardLayout';
+import { NAV } from './nav';
+
+/** Sends anonymous visitors to the login page (remembering where they were going). */
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { status } = useAuth();
+  const location = useLocation();
+  if (status === 'loading') return <Spinner />;
+  if (status === 'anonymous') return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  return <>{children}</>;
+}
+
+/** Hides a screen the user has no permission for. The API refuses the data anyway; this is the friendly version. */
+function RequirePermission({ any, children }: { any: string[]; children: ReactNode }) {
+  const { permissions } = useAuth();
+  const { t } = useTranslation();
+  if (any.length > 0 && !canAny(permissions, ...any)) return <p role="alert" className="p-8 text-center text-slate-600">{t('common.forbidden')}</p>;
+  return <>{children}</>;
+}
+
+const Message = ({ k }: { k: string }) => { const { t } = useTranslation(); return <p className="p-8 text-center text-slate-500">{t(k)}</p>; };
+
+const guard = (any: string[], el: ReactNode) => <RequirePermission any={any}>{el}</RequirePermission>;
+
+const comingSoon = NAV.flatMap((g) => g.items).filter((i) => !i.built).map((i): RouteObject => ({
+  path: i.to.slice(1), element: guard(i.permissions, <Message k="common.comingSoon" />),
+}));
+
+export const routes: RouteObject[] = [
+  { path: '/login', element: <LoginPage /> },
+  {
+    path: '/', element: <RequireAuth><DashboardLayout /></RequireAuth>,
+    children: [
+      { index: true, element: <DashboardPage /> },
+      { path: 'files', element: guard(['clearance_files.view'], <ClearanceFilesPage />) },
+      { path: 'clients', element: guard(['clients.view'], <ClientsPage />) },
+      ...comingSoon,
+      { path: '*', element: <Message k="common.notFound" /> },
+    ],
+  },
+];
+
+export const createRouter = () => createBrowserRouter(routes);
+export const createTestRouter = (initial: string) => createMemoryRouter(routes, { initialEntries: [initial] });
