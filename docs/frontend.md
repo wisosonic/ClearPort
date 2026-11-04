@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 72 tests
+npm test -w frontend   # 86 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -66,9 +66,10 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/` Dashboard | done: file counts, my tasks, finance block only with finance permissions |
 | `/files` Clearance files | list with search, filters and paging; **New file** button with the create permission |
 | `/files/new` | create form: client search, type, priority, branch, arrival date, customs reference, notes |
-| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Activity, Stage history |
+| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Tasks, Activity, Stage history |
 | `/clients` Clients | list with search and paging |
-| shipments, documents, tasks, invoices, payments, expenses, accounting, reports, users, settings | placeholder |
+| `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
+| shipments, documents, invoices, payments, expenses, accounting, reports, users, settings | placeholder |
 
 ## Clearance file workspace
 
@@ -112,6 +113,18 @@ Shown only with `documents.view` (`components/documents/`).
   included). It is not a plain link. `api.upload()` and `download()` in `lib/api-client.ts` do this, with the same token refresh as other calls.
 * Closed and cancelled files are read-only except for downloading.
 
+### Tasks (`features/tasks/`)
+
+One list and one form, used on the **Tasks** tab of a file (`/clearance-files/:id/tasks`) and on the `/tasks` page.
+
+* **Who can do what** follows the API: anyone with `tasks.view` can start, complete and reopen **their own** tasks; `tasks.manage` can also
+  create, edit, cancel and work on anyone's. The buttons are hidden when the API would refuse; if it refuses anyway, its message appears under the task.
+* **Assignee:** a new task goes to the person creating it. Choosing someone else needs `users.manage` (the user list is restricted).
+* **Due date** is a whole day in the user's own time zone and falls due at the **end** of that day (`dueToIso` / `isoToLocalDay`). Doing this in UTC would show
+  the next day in Lebanon; the tests run in several time zones to guard it. The Overdue badge comes from the server (`isOverdue`).
+* Changing a task refreshes what depends on it: open tasks block stage moves and closing a file, and show on the dashboard and in the file summary.
+* Tasks on a closed or cancelled file are read-only.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -122,5 +135,5 @@ Shown only with `documents.view` (`components/documents/`).
 
 ## Next
 
-The remaining tabs of the file page (tasks; invoices and payments; expenses); client details and forms; tasks and
+The remaining tabs of the file page (invoices and payments; expenses); client details and forms; tasks and
 documents; finance screens; reports, users and settings; code-splitting (the bundle is about 611 kB).

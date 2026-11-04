@@ -157,7 +157,8 @@
       "activity": "Activity",
       "stages": "Stage history",
       "shipments": "Shipments",
-      "documents": "Documents"
+      "documents": "Documents",
+      "tasks": "Tasks"
     },
     "summary": {
       "title": "Summary",
@@ -289,6 +290,34 @@
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
       "VOID": "Void"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "taskTitle": "Task",
+    "description": "Details",
+    "due": "Due",
+    "assignee": "Assigned to",
+    "assigneeHint": "Leave empty to assign it to yourself",
+    "me": "Me",
+    "titleRequired": "Give the task a title",
+    "add": "Add task",
+    "none": "No tasks here",
+    "show": "Show",
+    "stateOpen": "Open tasks",
+    "stateClosed": "Finished tasks",
+    "mine": "Assigned to me",
+    "overdueOnly": "Overdue only",
+    "overdue": "Overdue",
+    "start": "Start",
+    "complete": "Complete",
+    "reopen": "Reopen",
+    "cancel": "Cancel task",
+    "statuses": {
+      "OPEN": "Open",
+      "IN_PROGRESS": "In progress",
+      "DONE": "Done",
+      "CANCELLED": "Cancelled"
     }
   }
 }

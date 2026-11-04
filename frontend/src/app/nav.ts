@@ -12,7 +12,7 @@ export const NAV: NavGroup[] = [
       { to: '/clients', labelKey: 'nav.clients', icon: Users, permissions: ['clients.view'], built: true },
       { to: '/shipments', labelKey: 'nav.shipments', icon: Ship, permissions: ['clearance_files.view'], built: false },
       { to: '/documents', labelKey: 'nav.documents', icon: FileText, permissions: ['documents.view'], built: false },
-      { to: '/tasks', labelKey: 'nav.tasks', icon: CheckSquare, permissions: ['tasks.view'], built: false },
+      { to: '/tasks', labelKey: 'nav.tasks', icon: CheckSquare, permissions: ['tasks.view'], built: true },
     ],
   },
   {

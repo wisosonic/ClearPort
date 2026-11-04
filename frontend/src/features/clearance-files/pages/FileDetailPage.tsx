@@ -9,6 +9,7 @@ import { useAuth } from '@/features/auth/auth';
 import { Badge, Card, ErrorState, Spinner } from '@/components/ui/primitives';
 import { AssignControl } from '../components/AssignControl';
 import { ActivityTab, StageHistoryTab } from '../components/HistoryTabs';
+import { FileTasksTab } from '../components/FileTasksTab';
 import { OverviewTab } from '../components/OverviewTab';
 import { DocumentsTab } from '../components/documents/DocumentsTab';
 import { ShipmentsTab } from '../components/shipments/ShipmentsTab';
@@ -16,7 +17,7 @@ import { StagePanel } from '../components/StagePanel';
 import { priorityTone, statusTone, type FileDetail } from '../lib';
 
 const ALL_TABS = [
-  { key: 'overview' }, { key: 'shipments' }, { key: 'documents', permission: 'documents.view' }, { key: 'activity' }, { key: 'stages' },
+  { key: 'overview' }, { key: 'shipments' }, { key: 'documents', permission: 'documents.view' }, { key: 'tasks', permission: 'tasks.view' }, { key: 'activity' }, { key: 'stages' },
 ] as const;
 type Tab = (typeof ALL_TABS)[number]['key'];
 
@@ -69,6 +70,7 @@ export function FileDetailPage() {
         {tab === 'overview' && <OverviewTab file={file} />}
         {tab === 'shipments' && <ShipmentsTab file={file} />}
         {tab === 'documents' && <DocumentsTab file={file} />}
+        {tab === 'tasks' && <FileTasksTab file={file} />}
         {tab === 'activity' && <ActivityTab fileId={file.id} />}
         {tab === 'stages' && <StageHistoryTab fileId={file.id} />}
       </div>

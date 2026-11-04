@@ -139,9 +139,9 @@ describe('permissions in the interface', () => {
   });
 
   it('shows a placeholder for sections that are not built yet, and a 404 for unknown addresses', async () => {
-    permissions = ['tasks.view'];
+    permissions = ['clearance_files.view'];
     tokens.set({ accessToken: '', refreshToken: 'S'.repeat(40) });
-    mount('/tasks');
+    mount('/shipments');
     expect(await screen.findByText('This section is being built.')).toBeInTheDocument();
   });
 });

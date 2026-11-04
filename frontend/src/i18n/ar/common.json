@@ -161,7 +161,8 @@
       "activity": "النشاط",
       "stages": "سجل المراحل",
       "shipments": "الشحنات",
-      "documents": "المستندات"
+      "documents": "المستندات",
+      "tasks": "المهام"
     },
     "summary": {
       "title": "الملخص",
@@ -293,6 +294,34 @@
       "APPROVED": "معتمد",
       "REJECTED": "مرفوض",
       "VOID": "ملغى"
+    }
+  },
+  "tasks": {
+    "title": "المهام",
+    "taskTitle": "المهمة",
+    "description": "التفاصيل",
+    "due": "الاستحقاق",
+    "assignee": "المسؤول",
+    "assigneeHint": "اتركه فارغاً لإسنادها إليك",
+    "me": "أنا",
+    "titleRequired": "أعطِ المهمة عنواناً",
+    "add": "إضافة مهمة",
+    "none": "لا توجد مهام هنا",
+    "show": "عرض",
+    "stateOpen": "المهام المفتوحة",
+    "stateClosed": "المهام المنتهية",
+    "mine": "المُسندة إليّ",
+    "overdueOnly": "المتأخرة فقط",
+    "overdue": "متأخرة",
+    "start": "ابدأ",
+    "complete": "أنجز",
+    "reopen": "أعد الفتح",
+    "cancel": "إلغاء المهمة",
+    "statuses": {
+      "OPEN": "مفتوحة",
+      "IN_PROGRESS": "قيد التنفيذ",
+      "DONE": "منجزة",
+      "CANCELLED": "ملغاة"
     }
   }
 }
