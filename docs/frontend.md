@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 207 tests
+npm test -w frontend   # 222 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -73,8 +73,9 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/reports` Reports | one page for clearance files, client balances, expenses, revenue and employee performance; filters, totals, export |
 | `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal), Trial balance, Chart of accounts, Cash and bank, Exchange rates |
 | `/users` Users and roles | tabs Users (add, edit, deactivate) and Roles (built-in and custom, permissions) |
+| `/settings` Settings | tabs Office, Branches, Tax, Financial categories (needs `settings.manage`) |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
-| shipments, documents, expenses, settings | placeholder |
+| shipments, documents, expenses | placeholder |
 
 ## Clearance file workspace
 
@@ -212,6 +213,18 @@ Listing users and roles needs `users.manage` (that is what the API requires); ch
   yourself; the others are disabled, and the API refuses anyway.
 * Permission descriptions come from the API in English; area names are translated.
 
+### Settings (`features/settings/`)
+
+Needs `settings.manage`.
+
+* **Office:** name, legal name, contact details, time zone (checked against the browser's list), language. The **base currency is shown but fixed**: changing it would reinterpret every
+  recorded amount. Saving re-reads the signed-in office, so the new name shows at once.
+* **Branches:** add (code is fixed afterwards), edit, deactivate.
+* **Tax:** off until the office turns it on and types its own rate (nothing is assumed). It applies to the taxable service-fee lines of **new** invoices; issued invoices keep their rate.
+* **Financial categories:** each category's *treatment* decides how it behaves: *paid for the client* (recorded as an expense, then re-billed at cost), *office cost* (never billed) or
+  *fee the office earns* (billed as a service fee). The kind and treatment are fixed once created; name, billable and taxable can change, and a category can be deactivated.
+* Workflow templates (`workflows.manage`) are configured through the API and have no screen yet.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -222,4 +235,4 @@ Listing users and roles needs `users.manage` (that is what the API requires); ch
 
 ## Next
 
-The remaining office-wide lists (shipments, documents, expenses), settings (office, branches, tax, categories, workflows); code-splitting (the bundle is about 611 kB).
+The remaining office-wide lists (shipments, documents, expenses), the workflow-template editor; code-splitting (the bundle is about 611 kB).

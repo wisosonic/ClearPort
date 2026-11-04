@@ -29,7 +29,7 @@ export const NAV: NavGroup[] = [
     items: [
       { to: '/reports', labelKey: 'nav.reports', icon: BarChart3, permissions: ['reports.view'], built: true },
       { to: '/users', labelKey: 'nav.users', icon: UserCog, permissions: ['users.manage', 'roles.manage'], built: true },
-      { to: '/settings', labelKey: 'nav.settings', icon: Settings, permissions: ['settings.manage'], built: false },
+      { to: '/settings', labelKey: 'nav.settings', icon: Settings, permissions: ['settings.manage'], built: true },
     ],
   },
 ];

@@ -23,6 +23,8 @@ interface AuthValue {
   login(email: string, password: string, officeSlug?: string): Promise<LoginResult>;
   logout(): Promise<void>;
   switchOffice(slug: string): Promise<void>;
+  /** Re-reads the signed-in user and office (after the office details change). */
+  reloadMe(): Promise<void>;
 }
 
 const Ctx = createContext<AuthValue | null>(null);
@@ -83,9 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadMe, qc]);
 
   const value = useMemo<AuthValue>(() => ({
-    status, me, sessionExpired, login, logout, switchOffice,
+    status, me, sessionExpired, login, logout, switchOffice, reloadMe: loadMe,
     permissions: me ? new Set(me.permissions) : NO_PERMISSIONS,
-  }), [status, me, sessionExpired, login, logout, switchOffice]);
+  }), [status, me, sessionExpired, login, logout, switchOffice, loadMe]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

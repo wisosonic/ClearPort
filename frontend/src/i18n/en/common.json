@@ -688,5 +688,67 @@
       "settings": "Settings",
       "audit": "Audit"
     }
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "office": "Office",
+      "branches": "Branches",
+      "tax": "Tax",
+      "categories": "Financial categories"
+    },
+    "saved": "Saved.",
+    "yes": "Yes",
+    "no": "No",
+    "officeName": "Office name",
+    "nameShort": "Enter a name (2 characters or more)",
+    "timezone": "Time zone",
+    "timezoneInvalid": "Choose a valid time zone, e.g. Asia/Beirut",
+    "officeLanguage": "Office language",
+    "baseCurrency": "Base currency",
+    "baseCurrencyHint": "Fixed: changing it would reinterpret every recorded amount.",
+    "slug": "Office address name",
+    "addBranch": "Add branch",
+    "editBranch": "Edit branch",
+    "branchCodeHint": "Letters, digits, - and _; cannot be changed later",
+    "noBranches": "No branches yet.",
+    "taxIntro": "The tax rate is entered by the office; nothing is assumed. It applies to the taxable service-fee lines of new invoices.",
+    "taxEnabled": "Charge tax on invoices",
+    "taxName": "Tax name",
+    "taxNameInvalid": "Enter a name up to 30 characters",
+    "taxRate": "Rate (%)",
+    "taxRateInvalid": "Enter a rate from 0 to 100, up to 4 decimals",
+    "taxZeroWarning": "Tax is on but the rate is 0, so no tax will be charged.",
+    "taxNewInvoicesOnly": "Changes apply to new invoices only. Invoices already issued keep the rate they were issued with.",
+    "categoriesIntro": "Categories decide how a cost or fee is treated: re-billed at cost, the office's own cost, or a fee the office earns.",
+    "addCategory": "Add category",
+    "editCategory": "Edit category",
+    "noCategories": "No categories.",
+    "categoryType": "Kind",
+    "treatment": "Treatment",
+    "billable": "Billable to the client",
+    "taxable": "Taxable",
+    "categoryFixed": "The kind and treatment cannot be changed once created, because recorded transactions rely on them.",
+    "treatments": {
+      "PASS_THROUGH": "Paid for the client, re-billed at cost",
+      "OFFICE_EXPENSE": "Office cost",
+      "OFFICE_REVENUE": "Fee the office earns"
+    },
+    "treatmentHints": {
+      "PASS_THROUGH": "Customs duties, port fees: recorded as an expense, then billed on an invoice at cost.",
+      "OFFICE_EXPENSE": "The office's own running costs; never billed.",
+      "OFFICE_REVENUE": "Service fees billed to clients."
+    },
+    "categoryTypes": {
+      "CUSTOMS_DUTY_TAX": "Customs duty and tax",
+      "PORT_FEE": "Port fee",
+      "SHIPPING_FEE": "Shipping fee",
+      "TRANSPORTATION": "Transportation",
+      "SERVICE_FEE": "Service fee",
+      "INSPECTION": "Inspection",
+      "STORAGE": "Storage",
+      "OTHER": "Other"
+    },
+    "branchCodeInvalid": "Use letters, digits, - and _ only (up to 20)"
   }
 }
