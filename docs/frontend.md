@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 144 tests
+npm test -w frontend   # 151 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -69,8 +69,9 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Tasks, Invoices, Payments, Expenses, Activity, Stage history |
 | `/clients` Clients | list with search and paging; **New client** for `clients.manage` |
 | `/clients/new`, `/clients/:id` | create form; client page with tabs Details (edit, deactivate), Contacts, Files, Account |
+| `/invoices`, `/payments` | every invoice / payment in the office with filters (status, type, unpaid/overdue, unapplied, dates, search); rows link to the client and the file, where changes are made |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
-| shipments, documents, accounting, reports, users, settings | placeholder |
+| shipments, documents, expenses, accounting, reports, users, settings | placeholder |
 
 ## Clearance file workspace
 
@@ -179,4 +180,4 @@ The **Expenses** tab (needs `expenses.view`) lists the costs recorded against th
 
 ## Next
 
-The office-wide lists (shipments, documents, invoices, payments, expenses), accounting; reports, users and settings; code-splitting (the bundle is about 611 kB).
+The remaining office-wide lists (shipments, documents, expenses), accounting; reports, users and settings; code-splitting (the bundle is about 611 kB).

@@ -437,7 +437,11 @@
       "UNPAID": "Unpaid",
       "PARTIALLY_PAID": "Partly paid",
       "PAID": "Paid"
-    }
+    },
+    "searchPlaceholder": "Invoice number…",
+    "noneMatching": "No invoices match.",
+    "paymentFilter": "Payment",
+    "unpaid": "Unpaid"
   },
   "pay": {
     "title": "Payments",
@@ -495,7 +499,11 @@
     "reverse": "Reverse",
     "reverseReason": "Reason for reversing this allocation",
     "cancelPayment": "Cancel payment",
-    "cancelReason": "Reason for cancelling this payment"
+    "cancelReason": "Reason for cancelling this payment",
+    "searchPlaceholder": "Payment number or reference…",
+    "noneMatching": "No payments match.",
+    "unappliedOnly": "Not fully applied",
+    "openFile": "Open file"
   },
   "exp": {
     "title": "Expenses",

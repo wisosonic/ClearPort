@@ -445,7 +445,11 @@
       "UNPAID": "غير مدفوعة",
       "PARTIALLY_PAID": "مدفوعة جزئياً",
       "PAID": "مدفوعة"
-    }
+    },
+    "searchPlaceholder": "رقم الفاتورة…",
+    "noneMatching": "لا توجد فواتير مطابقة.",
+    "paymentFilter": "الدفع",
+    "unpaid": "غير مدفوعة"
   },
   "pay": {
     "title": "الدفعات",
@@ -503,7 +507,11 @@
     "reverse": "عكس",
     "reverseReason": "سبب عكس هذا التطبيق",
     "cancelPayment": "إلغاء الدفعة",
-    "cancelReason": "سبب إلغاء هذه الدفعة"
+    "cancelReason": "سبب إلغاء هذه الدفعة",
+    "searchPlaceholder": "رقم الدفعة أو المرجع…",
+    "noneMatching": "لا توجد دفعات مطابقة.",
+    "unappliedOnly": "غير مطبّقة بالكامل",
+    "openFile": "فتح الملف"
   },
   "exp": {
     "title": "المصاريف",
