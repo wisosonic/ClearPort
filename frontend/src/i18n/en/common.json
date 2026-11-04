@@ -160,7 +160,8 @@
       "documents": "Documents",
       "tasks": "Tasks",
       "invoices": "Invoices",
-      "payments": "Payments"
+      "payments": "Payments",
+      "expenses": "Expenses"
     },
     "summary": {
       "title": "Summary",
@@ -440,5 +441,29 @@
     "reverseReason": "Reason for reversing this allocation",
     "cancelPayment": "Cancel payment",
     "cancelReason": "Reason for cancelling this payment"
+  },
+  "exp": {
+    "title": "Expenses",
+    "none": "No expenses recorded for this file yet.",
+    "record": "Record expense",
+    "save": "Record expense",
+    "editDraft": "Edit draft expense",
+    "readOnly": "This file is closed or cancelled, so expenses cannot be changed.",
+    "categoryRequired": "Choose a category",
+    "passThroughHint": "Paid for the client: once approved it can be re-billed at cost on an invoice.",
+    "officeHint": "The office's own cost: it is not billed to the client.",
+    "statuses": {
+      "DRAFT": "Draft",
+      "APPROVED": "Approved",
+      "CANCELLED": "Cancelled"
+    },
+    "billedOn": "On {{number}}",
+    "approve": "Approve",
+    "markPaid": "Mark as paid",
+    "cancel": "Cancel expense",
+    "cancelReason": "Reason for cancelling this expense",
+    "payFrom": "Paid from",
+    "payFromHint": "Choose the account it was paid from, or leave it unpaid to record a payable.",
+    "leaveUnpaid": "Not paid yet (payable)"
   }
 }
