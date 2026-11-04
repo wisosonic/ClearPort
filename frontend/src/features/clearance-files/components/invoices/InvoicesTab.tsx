@@ -6,6 +6,7 @@ import { api, ApiError } from '@/lib/api-client';
 import { formatDate, formatMoney, type Locale } from '@/lib/format';
 import { can } from '@/lib/permissions';
 import { useAuth } from '@/features/auth/auth';
+import { PdfButtons } from '@/components/PdfButtons';
 import { Alert, Badge, Button, Card, EmptyState, ErrorState, Pagination, Spinner, Td, Textarea, Th } from '@/components/ui/primitives';
 import type { FileDetail } from '../../lib';
 import { InvoiceForm } from './InvoiceForm';
@@ -94,6 +95,7 @@ function InvoiceDetail({ id, fileId, baseCurrency, editable, onClose }: { id: st
       </div>
       <Totals inv={inv} locale={locale} />
       {inv.invoiceType === 'ADVANCE' && <p className="text-xs text-slate-500">{t('inv.advanceNote')}</p>}
+      {inv.status === 'ISSUED' && <PdfButtons path={`/invoices/${inv.id}/pdf`} fallbackName={inv.invoiceNumber} />}
 
       {cancelling && (
         <div className="space-y-2">

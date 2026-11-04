@@ -814,5 +814,23 @@
       "requiresReason": "Needs a reason",
       "requiredTaskCheck": "No open tasks"
     }
+  },
+  "account": {
+    "title": "My account",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "newPasswordHint": "At least 10 characters, different from the current one.",
+    "repeatPassword": "Repeat the new password",
+    "currentRequired": "Enter your current password",
+    "mustDiffer": "The new password must differ from the current one",
+    "mismatch": "The passwords do not match",
+    "signOutNote": "For your security you will be signed out of every device and sign in again with the new password.",
+    "changed": "Your password was changed. Please sign in again with the new password.",
+    "signInAgain": "Sign in again"
+  },
+  "print": {
+    "pdfEnglish": "PDF (English)",
+    "pdfArabic": "PDF (Arabic)"
   }
 }

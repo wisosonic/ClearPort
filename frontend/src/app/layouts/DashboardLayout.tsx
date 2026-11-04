@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import { Languages, LogOut, Menu, X } from 'lucide-react';
+import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Languages, LogOut, Menu, UserRound, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { setLocale } from '@/i18n';
 import { cn } from '@/lib/cn';
@@ -69,7 +69,7 @@ export function DashboardLayout() {
           >
             <Languages className="size-4" aria-hidden />{locale === 'ar' ? 'English' : 'العربية'}
           </button>
-          <span className="hidden text-sm text-slate-600 sm:inline">{me?.user.firstName} {me?.user.lastName}</span>
+          <Link to="/account" className="flex items-center gap-1 rounded px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100" aria-label={t('account.title')}><UserRound className="size-4" aria-hidden /><span className="hidden sm:inline">{me?.user.firstName} {me?.user.lastName}</span></Link>
           <button className="flex items-center gap-1 rounded px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100" onClick={() => void logout()}>
             <LogOut className="rtl-flip size-4" aria-hidden /><span className="hidden sm:inline">{t('auth.signOut')}</span>
           </button>

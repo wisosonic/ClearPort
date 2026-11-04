@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 250 tests
+npm test -w frontend   # 258 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -75,6 +75,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/users` Users and roles | tabs Users (add, edit, deactivate) and Roles (built-in and custom, permissions) |
 | `/settings` Settings | tabs Office, Branches, Tax, Financial categories (need `settings.manage`) and Workflows (needs `workflows.manage`); each tab shows only to those who hold its permission |
 | `/shipments`, `/documents`, `/expenses` | every shipment / document / expense in the office with filters; rows link to the file, where changes are made. Shipments search BL, container, vessel and voyage; documents search the file name |
+| `/account` My account | who I am in this office, and change my password (reached from my name in the header) |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
 
 ## Clearance file workspace
@@ -227,6 +228,13 @@ Needs `settings.manage`.
   the other of the same type); files already in progress keep the template they began with. A new template starts **not in use** so a half-built one is never picked up. Stage codes are fixed once
   created and stored upper-case; names are given in English and Arabic. A **move** (transition) can require complete documents, no open tasks, a reason, an approval, and/or a permission; a final
   stage cannot have moves out of it, and a stage with moves out of it cannot be made final until they are removed (the API explains each refusal). Stages cannot be deleted or reordered yet.
+
+### Printable PDFs and my account
+
+* **PDF buttons** (`components/PdfButtons.tsx`): an issued invoice (in its details on the file page) and a client's statement (on the client's Account tab, with the filters in use) can be
+  downloaded as a PDF **in English or in Arabic**. The language is chosen per document, not taken from the screen, because the document goes to a client.
+* **Change password:** needs the current password and a new one of 10+ characters that differs from it. The API then ends every session of that person, so the page shows a message and a
+  *Sign in again* button. It is on `/account`, reached from the person icon / name in the header (also on phones).
 
 ## Adding a screen
 

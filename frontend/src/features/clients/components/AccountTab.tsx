@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api-client';
 import { formatDate, formatMoney, type Locale } from '@/lib/format';
+import { PdfButtons } from '@/components/PdfButtons';
 import { Alert, Card, EmptyState, ErrorState, Field, Input, Select, Spinner, Td, Th } from '@/components/ui/primitives';
 import type { Balance, Statement } from '../types';
 
@@ -58,7 +59,10 @@ export function AccountTab({ clientId }: { clientId: string }) {
 
       <Card className="overflow-hidden">
         <div className="space-y-3 border-b border-slate-200 px-5 py-3">
-          <h2 className="text-sm font-semibold text-slate-700">{t('clients.statement')}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-slate-700">{t('clients.statement')}</h2>
+            <PdfButtons path={`/clients/${clientId}/statement/pdf`} query={{ currency: currency || undefined, from: from || undefined, to: to || undefined }} fallbackName="statement" />
+          </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label={t('inv.currency')} htmlFor="st-currency">
               <Select id="st-currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
