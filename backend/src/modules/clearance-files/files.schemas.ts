@@ -88,6 +88,16 @@ export const createShipmentSchema = z.object({
   etd: isoDateTime.optional(), eta: isoDateTime.optional(), actualArrivalAt: isoDateTime.optional(),
   notes: text(2000),
 });
+/** Shipments across the whole office. 'arrived' = has an actual arrival date. from/to filter the expected arrival (ETA) by day. */
+const dayString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD');
+export const shipmentListQuerySchema = listQuerySchema.extend({
+  clearanceFileId: uuid.optional(),
+  shipmentType: z.enum(SHIPMENT_TYPES).optional(),
+  arrived: z.enum(['true', 'false']).optional(),
+  from: dayString.optional(),
+  to: dayString.optional(),
+});
+
 export type CreateShipmentInput = z.infer<typeof createShipmentSchema>;
 export const updateShipmentSchema = z.object(shipmentFields).partial().strict();
 export type UpdateShipmentInput = z.infer<typeof updateShipmentSchema>;

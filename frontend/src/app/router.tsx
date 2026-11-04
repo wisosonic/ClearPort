@@ -17,6 +17,9 @@ import { PaymentsPage } from '@/features/finance/pages/PaymentsPage';
 import { ReportsPage } from '@/features/reports/pages/ReportsPage';
 import { UsersPage } from '@/features/users/pages/UsersPage';
 import { SettingsPage } from '@/features/settings/pages/SettingsPage';
+import { DocumentsPage } from '@/features/office-lists/pages/DocumentsPage';
+import { ExpensesPage } from '@/features/office-lists/pages/ExpensesPage';
+import { ShipmentsPage } from '@/features/office-lists/pages/ShipmentsPage';
 import { TasksPage } from '@/features/tasks/TasksPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { DashboardLayout } from './layouts/DashboardLayout';
@@ -64,6 +67,9 @@ export const routes: RouteObject[] = [
       { path: 'users', element: guard(['users.manage', 'roles.manage'], <UsersPage />) },
       { path: 'accounting', element: guard(['accounting.view'], <AccountingPage />) },
       { path: 'reports', element: guard(['reports.view'], <ReportsPage />) },
+      { path: 'shipments', element: guard(['clearance_files.view'], <ShipmentsPage />) },
+      { path: 'documents', element: guard(['documents.view'], <DocumentsPage />) },
+      { path: 'expenses', element: guard(['expenses.view'], <ExpensesPage />) },
       { path: 'invoices', element: guard(['invoices.view'], <InvoicesPage />) },
       { path: 'payments', element: guard(['payments.view'], <PaymentsPage />) },
       ...comingSoon,

@@ -10,8 +10,8 @@ Product and technical direction: [ClearPort_Project_Specification.md](ClearPort_
 
 | Part | Status |
 |---|---|
-| **Backend** (NestJS + Prisma + SQLite) | Phases 1–6 complete, 515 tests. Auth, multi-tenancy, RBAC, users/roles/branches/settings, CRM, clearance files, documents, workflow, tasks, finance and accounting, dashboard, reports, Excel/CSV/PDF export, printable invoices and statements, background jobs, backup/restore, audit log, security review. |
-| **Frontend** (React + Vite) | 222 tests. Sign-in (including office selection), app shell with permission-aware navigation, English/Arabic with RTL, dashboard, clients (list, create, details, contacts, files, balance and statement), the tasks page, the invoices and payments lists, reports with Excel/CSV/PDF export, accounting (journal, trial balance, chart of accounts, cash and bank, exchange rates), users and roles, settings (office, branches, tax, financial categories), and the clearance-file workspace: list, create form, file page with stage moves, close/reopen, assignment, editing, shipments with containers and goods, documents (checklist, upload, review), tasks, invoices (drafts, issue, cancel), payments (record, apply, reverse), expenses (record, approve, pay), activity and stage history. Other sections show a "being built" placeholder. |
+| **Backend** (NestJS + Prisma + SQLite) | Phases 1–6 complete, 516 tests. Auth, multi-tenancy, RBAC, users/roles/branches/settings, CRM, clearance files, documents, workflow, tasks, finance and accounting, dashboard, reports, Excel/CSV/PDF export, printable invoices and statements, background jobs, backup/restore, audit log, security review. |
+| **Frontend** (React + Vite) | 233 tests. Sign-in (including office selection), app shell with permission-aware navigation, English/Arabic with RTL, dashboard, clients (list, create, details, contacts, files, balance and statement), the tasks page, the office-wide shipments, documents, invoices, payments and expenses lists, reports with Excel/CSV/PDF export, accounting (journal, trial balance, chart of accounts, cash and bank, exchange rates), users and roles, settings (office, branches, tax, financial categories), and the clearance-file workspace: list, create form, file page with stage moves, close/reopen, assignment, editing, shipments with containers and goods, documents (checklist, upload, review), tasks, invoices (drafts, issue, cancel), payments (record, apply, reverse), expenses (record, approve, pay), activity and stage history. Every section of the menu now has a screen. |
 
 Architecture and API notes: [docs/architecture.md](docs/architecture.md) (backend) and
 [docs/frontend.md](docs/frontend.md). Database: [docs/database.md](docs/database.md).
@@ -51,7 +51,7 @@ cp .env.example .env          # then set JWT_ACCESS_SECRET to a random string of
 npm run db:deploy             # apply migrations (use `npm run db:migrate` while developing schema changes)
 npm run db:generate           # generate the Prisma client into src/generated
 npm run db:seed               # permissions, system roles, currencies, document types, ports, ...
-npm test                      # unit, integration and API tests (515)
+npm test                      # unit, integration and API tests (516)
 
 # create the first office and its owner
 CLEARPORT_OWNER_PASSWORD='a-strong-password' npm run tenant:create -- \
@@ -63,7 +63,7 @@ Then, from the repository root:
 ```bash
 npm run start:api             # API on http://localhost:3000/api/v1
 npm run dev                   # web app on http://localhost:5173 (proxies /api to the API)
-npm test -w frontend          # frontend tests (222)
+npm test -w frontend          # frontend tests (233)
 ```
 
 Set `VITE_API_TARGET` to point the web app at a different API address.

@@ -750,5 +750,23 @@
       "OTHER": "Other"
     },
     "branchCodeInvalid": "Use letters, digits, - and _ only (up to 20)"
+  },
+  "lists": {
+    "shipmentSearch": "BL, container, vessel or voyage…",
+    "arrival": "Arrival",
+    "arrived": "Arrived",
+    "notArrived": "Not arrived yet",
+    "route": "Route",
+    "noShipments": "No shipments match.",
+    "documentSearch": "File name…",
+    "includeVoid": "Include voided",
+    "noDocuments": "No documents match.",
+    "documentsHint": "Upload, review and void documents on the clearance file they belong to.",
+    "expenseSearch": "Description…",
+    "paid": "Payment",
+    "rebilled": "Re-billing",
+    "billed": "Re-billed on an invoice",
+    "notBilled": "Not re-billed yet",
+    "noExpenses": "No expenses match."
   }
 }

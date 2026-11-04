@@ -2,7 +2,7 @@
 
 Modular monolith: NestJS 11 + Prisma 7 + SQLite. REST under `/api/v1`. See
 [database.md](database.md) for the schema and [frontend.md](frontend.md) for the web app.
-The backend covers Phases 1–6 (515 tests); the frontend foundation is in place.
+The backend covers Phases 1–6 (516 tests); the frontend foundation is in place.
 
 ## Request pipeline
 

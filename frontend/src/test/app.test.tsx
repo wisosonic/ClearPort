@@ -138,11 +138,11 @@ describe('permissions in the interface', () => {
     expect(calls.some((c) => c.url.includes('/clearance-files'))).toBe(false); // it did not even ask the server
   });
 
-  it('shows a placeholder for sections that are not built yet, and a 404 for unknown addresses', async () => {
+  it('shows a not-found page for unknown addresses', async () => {
     permissions = ['clearance_files.view'];
     tokens.set({ accessToken: '', refreshToken: 'S'.repeat(40) });
-    mount('/shipments');
-    expect(await screen.findByText('This section is being built.')).toBeInTheDocument();
+    mount('/no-such-page');
+    expect(await screen.findByText('Page not found')).toBeInTheDocument();
   });
 });
 

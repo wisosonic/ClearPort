@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 222 tests
+npm test -w frontend   # 233 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -74,8 +74,8 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal), Trial balance, Chart of accounts, Cash and bank, Exchange rates |
 | `/users` Users and roles | tabs Users (add, edit, deactivate) and Roles (built-in and custom, permissions) |
 | `/settings` Settings | tabs Office, Branches, Tax, Financial categories (needs `settings.manage`) |
+| `/shipments`, `/documents`, `/expenses` | every shipment / document / expense in the office with filters; rows link to the file, where changes are made. Shipments search BL, container, vessel and voyage; documents search the file name |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
-| shipments, documents, expenses | placeholder |
 
 ## Clearance file workspace
 
@@ -235,4 +235,4 @@ Needs `settings.manage`.
 
 ## Next
 
-The remaining office-wide lists (shipments, documents, expenses), the workflow-template editor; code-splitting (the bundle is about 611 kB).
+The workflow-template editor; code-splitting (the bundle is about 611 kB).

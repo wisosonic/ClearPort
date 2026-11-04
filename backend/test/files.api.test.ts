@@ -258,6 +258,30 @@ describe('clearance files API', () => {
       expect(list).toHaveLength(2);
     });
 
+    it('lists shipments across the office, with search, filters, the file and client, and tenant isolation', async () => {
+      const cont = await ok(api.req('post', `/shipments/${shipment.id}/containers`, A).send({ containerNumber: cn('TGHU123456') }));
+      const all = await api.req('get', '/shipments?limit=100', A);
+      expect(all.status).toBe(200);
+      expect(all.body.meta.total).toBeGreaterThanOrEqual(2);
+      const row = all.body.data.find((s: any) => s.id === shipment.id);
+      expect(row).toMatchObject({ vesselName: 'MSC Aurora', clearanceFile: { id: fileId, client: { name: 'Acme Trading' } }, originPort: { code: 'CNSHA' }, _count: { containers: 1 } });
+
+      const ids = async (qs: string) => (await ok(api.req('get', `/shipments?${qs}`, A))).map((s: any) => s.id);
+      expect(await ids('search=BL-777')).toEqual([shipment.id]); // bill of lading
+      expect(await ids('search=aurora')).toEqual([shipment.id]); // vessel, case-insensitive
+      expect(await ids(`search=${cont.containerNumber}`)).toEqual([shipment.id]); // via a container number
+      expect(await ids('search=%25')).toEqual([]); // % is literal, not a wildcard
+      expect(await ids(`clearanceFileId=${fileId}&shipmentType=AIR`)).toHaveLength(1);
+      expect(await ids(`clearanceFileId=${fileId}&from=2026-11-19&to=2026-11-21`)).toEqual([shipment.id]); // ETA in range
+      expect(await ids(`clearanceFileId=${fileId}&from=2026-12-01`)).toEqual([]);
+      expect(await ids(`clearanceFileId=${fileId}&arrived=true`)).toEqual([]);
+      expect(await ids(`clearanceFileId=${fileId}&arrived=false`)).toHaveLength(2);
+
+      expect((await api.req('get', '/shipments?shipmentType=BOAT', A)).status).toBe(400);
+      expect((await ok(api.req('get', '/shipments?limit=100', B))).map((s: any) => s.id)).not.toContain(shipment.id); // another office never sees it
+      expect((await api.req('get', '/shipments', viewer)).status).toBe(200); // clearance_files.view is enough
+    });
+
     it('validates references and dates', async () => {
       const bad = async (body: object, code: string) => {
         const res = await api.req('post', `/clearance-files/${fileId}/shipments`, A).send(body);

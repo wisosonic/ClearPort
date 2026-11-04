@@ -9,7 +9,7 @@ import type { AuthContext, RequestMeta } from '../auth/auth.types';
 import { CurrentAuth, ReqMeta, RequirePermissions } from '../auth/decorators';
 import {
   assignSchema, createContainerSchema, createFileSchema, createGoodsSchema, createShipmentSchema,
-  fileListQuerySchema, hsCodeQuerySchema, portQuerySchema, timelineQuerySchema, updateContainerSchema,
+  fileListQuerySchema, hsCodeQuerySchema, portQuerySchema, shipmentListQuerySchema, timelineQuerySchema, updateContainerSchema,
   updateFileSchema, updateGoodsSchema, updateShipmentSchema,
 } from './files.schemas';
 import { FilesService } from './files.service';
@@ -104,6 +104,13 @@ export class FilesController {
 @Controller()
 export class ShipmentsController {
   constructor(@Inject(ShipmentsService) private readonly shipments: ShipmentsService) {}
+
+  /** Every shipment in the office (search matches BL numbers, vessel, voyage and container numbers). */
+  @RequirePermissions('clearance_files.view')
+  @Get('shipments')
+  list(@Query(new ZodPipe(shipmentListQuerySchema)) q: z.infer<typeof shipmentListQuerySchema>) {
+    return this.shipments.listAll(q);
+  }
 
   @RequirePermissions('clearance_files.view')
   @Get('shipments/:id')

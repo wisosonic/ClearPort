@@ -3,13 +3,17 @@ import Decimal from 'decimal.js';
 import { conflict, notFound, unprocessable } from '../../common/errors';
 import { checkContainerNumber, normalizeContainerNumber } from '../../common/iso6346';
 import { mul } from '../../common/money';
+import { z } from 'zod';
+import { orderBy, pageArgs, paginated } from '../../common/pagination';
+import { searchIds } from '../../common/search';
 import { TenantDbService } from '../../database/prisma.module';
+import { requireTenant } from '../../database/tenant-context';
 import { AuditService } from '../audit/audit.service';
 import type { AuthContext, RequestMeta } from '../auth/auth.types';
 import { ActivityService } from './activity.service';
 import type {
   CreateContainerInput, CreateGoodsInput, CreateShipmentInput, UpdateContainerInput,
-  UpdateGoodsInput, UpdateShipmentInput,
+  UpdateGoodsInput, UpdateShipmentInput, shipmentListQuerySchema,
 } from './files.schemas';
 import { FilesService } from './files.service';
 
@@ -32,6 +36,38 @@ export class ShipmentsService {
     return this.db.client.shipment.findMany({
       where: { clearanceFileId: fileId }, orderBy: { createdAt: 'asc' }, include: this.shipmentInclude,
     });
+  }
+
+  async listAll(q: z.infer<typeof shipmentListQuerySchema>) {
+    const where: any = {};
+    if (q.clearanceFileId) where.clearanceFileId = q.clearanceFileId;
+    if (q.shipmentType) where.shipmentType = q.shipmentType;
+    if (q.arrived) where.actualArrivalAt = q.arrived === 'true' ? { not: null } : null;
+    if (q.from || q.to) {
+      where.eta = {
+        ...(q.from && { gte: new Date(`${q.from}T00:00:00.000Z`) }),
+        ...(q.to && { lte: new Date(`${q.to}T23:59:59.999Z`) }),
+      };
+    }
+    if (q.search) {
+      const { tenantId } = requireTenant();
+      const [own, byContainer] = await Promise.all([
+        searchIds(this.db.client, { table: 'shipments', columns: ['billOfLadingNumber', 'masterBlNumber', 'houseBlNumber', 'vesselName', 'voyageNumber'], term: q.search, tenantId }),
+        searchIds(this.db.client, { table: 'containers', columns: ['containerNumber'], term: q.search, tenantId }),
+      ]);
+      const viaContainer = byContainer.length
+        ? (await this.db.client.container.findMany({ where: { id: { in: byContainer } }, select: { shipmentId: true } })).map((c) => c.shipmentId)
+        : [];
+      where.id = { in: [...new Set([...own, ...viaContainer])] };
+    }
+    const [rows, total] = await Promise.all([
+      this.db.client.shipment.findMany({
+        where, ...pageArgs(q), orderBy: orderBy(q.sort, ['eta', 'createdAt'] as const, { createdAt: 'desc' }),
+        include: { ...this.shipmentInclude, clearanceFile: { select: { id: true, fileNumber: true, status: true, client: { select: { id: true, name: true } } } } },
+      }),
+      this.db.client.shipment.count({ where }),
+    ]);
+    return paginated(rows, q, total);
   }
 
   async get(id: string) {
