@@ -158,7 +158,8 @@
       "stages": "Stage history",
       "shipments": "Shipments",
       "documents": "Documents",
-      "tasks": "Tasks"
+      "tasks": "Tasks",
+      "invoices": "Invoices"
     },
     "summary": {
       "title": "Summary",
@@ -318,6 +319,67 @@
       "IN_PROGRESS": "In progress",
       "DONE": "Done",
       "CANCELLED": "Cancelled"
+    }
+  },
+  "inv": {
+    "title": "Invoices",
+    "none": "No invoices for this file yet.",
+    "newDraft": "New draft invoice",
+    "editDraft": "Edit draft invoice",
+    "createDraft": "Create draft",
+    "readOnly": "This file is closed or cancelled, so invoices cannot be changed.",
+    "number": "Number",
+    "draft": "Draft",
+    "type": "Type",
+    "currency": "Currency",
+    "dueDate": "Due date",
+    "discount": "Discount",
+    "noDiscountAdvance": "Not available on an advance invoice",
+    "lines": "Lines",
+    "description": "Description",
+    "category": "Category",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "amount": "Amount",
+    "addService": "Add service fee",
+    "addExpense": "Add an expense at cost",
+    "atCost": "at cost",
+    "removeLine": "Remove line",
+    "totalsNote": "Tax and totals are calculated when you save.",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "total": "Total",
+    "paid": "Paid",
+    "outstanding": "Outstanding",
+    "overdue": "Overdue",
+    "details": "Show details",
+    "hide": "Hide",
+    "issue": "Issue invoice",
+    "discard": "Discard draft",
+    "cancelInvoice": "Cancel invoice",
+    "cancelReason": "Reason for cancelling",
+    "cancelledBecause": "Cancelled: {{reason}}",
+    "advanceNote": "An advance invoice asks the client for funds; it is not recorded as a sale.",
+    "descriptionRequired": "Enter a description",
+    "categoryRequired": "Choose a category",
+    "quantityInvalid": "Enter a quantity above zero",
+    "priceInvalid": "Enter an amount, up to 4 decimals",
+    "linesRequired": "Add at least one line",
+    "types": {
+      "STANDARD": "Standard",
+      "ADVANCE": "Advance",
+      "SUPPLEMENTARY": "Supplementary",
+      "FINAL": "Final"
+    },
+    "statuses": {
+      "DRAFT": "Draft",
+      "ISSUED": "Issued",
+      "CANCELLED": "Cancelled"
+    },
+    "payStatuses": {
+      "UNPAID": "Unpaid",
+      "PARTIALLY_PAID": "Partly paid",
+      "PAID": "Paid"
     }
   }
 }

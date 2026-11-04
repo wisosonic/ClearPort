@@ -162,7 +162,8 @@
       "stages": "سجل المراحل",
       "shipments": "الشحنات",
       "documents": "المستندات",
-      "tasks": "المهام"
+      "tasks": "المهام",
+      "invoices": "الفواتير"
     },
     "summary": {
       "title": "الملخص",
@@ -322,6 +323,67 @@
       "IN_PROGRESS": "قيد التنفيذ",
       "DONE": "منجزة",
       "CANCELLED": "ملغاة"
+    }
+  },
+  "inv": {
+    "title": "الفواتير",
+    "none": "لا توجد فواتير لهذا الملف بعد.",
+    "newDraft": "مسودة فاتورة جديدة",
+    "editDraft": "تعديل مسودة الفاتورة",
+    "createDraft": "إنشاء المسودة",
+    "readOnly": "هذا الملف مغلق أو ملغى، لذا لا يمكن تعديل الفواتير.",
+    "number": "الرقم",
+    "draft": "مسودة",
+    "type": "النوع",
+    "currency": "العملة",
+    "dueDate": "تاريخ الاستحقاق",
+    "discount": "الخصم",
+    "noDiscountAdvance": "غير متاح في فاتورة الدفعة المقدمة",
+    "lines": "البنود",
+    "description": "الوصف",
+    "category": "الفئة",
+    "quantity": "الكمية",
+    "unitPrice": "سعر الوحدة",
+    "amount": "المبلغ",
+    "addService": "إضافة أتعاب خدمة",
+    "addExpense": "إضافة مصروف بالتكلفة",
+    "atCost": "بالتكلفة",
+    "removeLine": "حذف البند",
+    "totalsNote": "تُحسب الضريبة والمجاميع عند الحفظ.",
+    "subtotal": "المجموع الفرعي",
+    "tax": "الضريبة",
+    "total": "الإجمالي",
+    "paid": "المدفوع",
+    "outstanding": "المتبقي",
+    "overdue": "متأخرة",
+    "details": "عرض التفاصيل",
+    "hide": "إخفاء",
+    "issue": "إصدار الفاتورة",
+    "discard": "حذف المسودة",
+    "cancelInvoice": "إلغاء الفاتورة",
+    "cancelReason": "سبب الإلغاء",
+    "cancelledBecause": "ملغاة: {{reason}}",
+    "advanceNote": "فاتورة الدفعة المقدمة تطلب أموالاً من العميل ولا تُسجَّل كمبيعات.",
+    "descriptionRequired": "أدخل وصفاً",
+    "categoryRequired": "اختر فئة",
+    "quantityInvalid": "أدخل كمية أكبر من صفر",
+    "priceInvalid": "أدخل مبلغاً بحد أقصى 4 خانات عشرية",
+    "linesRequired": "أضف بنداً واحداً على الأقل",
+    "types": {
+      "STANDARD": "عادية",
+      "ADVANCE": "دفعة مقدمة",
+      "SUPPLEMENTARY": "تكميلية",
+      "FINAL": "نهائية"
+    },
+    "statuses": {
+      "DRAFT": "مسودة",
+      "ISSUED": "صادرة",
+      "CANCELLED": "ملغاة"
+    },
+    "payStatuses": {
+      "UNPAID": "غير مدفوعة",
+      "PARTIALLY_PAID": "مدفوعة جزئياً",
+      "PAID": "مدفوعة"
     }
   }
 }

@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 86 tests
+npm test -w frontend   # 99 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -66,10 +66,10 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/` Dashboard | done: file counts, my tasks, finance block only with finance permissions |
 | `/files` Clearance files | list with search, filters and paging; **New file** button with the create permission |
 | `/files/new` | create form: client search, type, priority, branch, arrival date, customs reference, notes |
-| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Tasks, Activity, Stage history |
+| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Tasks, Invoices, Activity, Stage history |
 | `/clients` Clients | list with search and paging |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
-| shipments, documents, invoices, payments, expenses, accounting, reports, users, settings | placeholder |
+| shipments, documents, payments, expenses, accounting, reports, users, settings | placeholder |
 
 ## Clearance file workspace
 
@@ -125,6 +125,18 @@ One list and one form, used on the **Tasks** tab of a file (`/clearance-files/:i
 * Changing a task refreshes what depends on it: open tasks block stage moves and closing a file, and show on the dashboard and in the file summary.
 * Tasks on a closed or cancelled file are read-only.
 
+### Invoices (`features/clearance-files/components/invoices/`)
+
+The **Invoices** tab (needs `invoices.view`) lists the file's invoices; a row expands to show lines, totals and actions.
+
+* **Lifecycle:** a *draft* has no number and no accounting and can be edited or discarded. *Issue* gives it the next number, freezes it and posts it to the ledger.
+  An issued invoice cannot be edited; it can only be cancelled (needs `invoices.issue` and a reason), and the API refuses while payments are applied to it.
+* **Lines:** a *service fee* (description, a fee category, quantity, unit price) or an *expense re-billed at cost*, picked from the file's approved, not-yet-billed
+  expenses in the same currency (needs `expenses.view`). Expenses in pass-through categories can only be billed this way. An **advance** invoice is a request for funds:
+  no categories, no discount, no re-billing, and nothing is booked until money arrives.
+* **Totals and tax** are computed by the API on save and shown from its response; the form never does money arithmetic.
+* Issuing uses the exchange rate in force; if a foreign-currency invoice has no rate the API's message is shown.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -135,5 +147,5 @@ One list and one form, used on the **Tasks** tab of a file (`/clearance-files/:i
 
 ## Next
 
-The remaining tabs of the file page (invoices and payments; expenses); client details and forms; tasks and
+The remaining tabs of the file page (payments; expenses); client details and forms; tasks and
 documents; finance screens; reports, users and settings; code-splitting (the bundle is about 611 kB).
