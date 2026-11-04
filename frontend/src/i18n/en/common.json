@@ -528,5 +528,29 @@
     "payFrom": "Paid from",
     "payFromHint": "Choose the account it was paid from, or leave it unpaid to record a payable.",
     "leaveUnpaid": "Not paid yet (payable)"
+  },
+  "reports": {
+    "title": "Reports",
+    "report": "Report",
+    "groupBy": "Group by",
+    "byMonth": "By month",
+    "byClient": "By client",
+    "onlyOpen": "Only with a balance",
+    "empty": "Nothing to report for these filters.",
+    "total": "Total",
+    "totalsByCurrency": "Totals by currency",
+    "noExport": "You can view reports but not export them.",
+    "names": {
+      "clearance-files": "Clearance files",
+      "client-balances": "Client balances",
+      "expenses": "Expenses",
+      "revenue": "Revenue",
+      "employee-performance": "Employee performance"
+    },
+    "export": {
+      "xlsx": "Excel",
+      "csv": "CSV",
+      "pdf": "PDF"
+    }
   }
 }

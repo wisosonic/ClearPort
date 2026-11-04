@@ -536,5 +536,29 @@
     "payFrom": "مدفوع من",
     "payFromHint": "اختر الحساب الذي دُفع منه، أو اتركه غير مدفوع لتسجيله كذمة دائنة.",
     "leaveUnpaid": "غير مدفوع بعد (ذمة دائنة)"
+  },
+  "reports": {
+    "title": "التقارير",
+    "report": "التقرير",
+    "groupBy": "التجميع",
+    "byMonth": "حسب الشهر",
+    "byClient": "حسب العميل",
+    "onlyOpen": "الأرصدة غير الصفرية فقط",
+    "empty": "لا يوجد ما يُعرض بهذه المرشحات.",
+    "total": "المجموع",
+    "totalsByCurrency": "المجاميع حسب العملة",
+    "noExport": "يمكنك عرض التقارير ولكن لا يمكنك تصديرها.",
+    "names": {
+      "clearance-files": "ملفات التخليص",
+      "client-balances": "أرصدة العملاء",
+      "expenses": "المصاريف",
+      "revenue": "الإيرادات",
+      "employee-performance": "أداء الموظفين"
+    },
+    "export": {
+      "xlsx": "Excel",
+      "csv": "CSV",
+      "pdf": "PDF"
+    }
   }
 }

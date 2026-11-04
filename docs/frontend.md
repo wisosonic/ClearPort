@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 151 tests
+npm test -w frontend   # 162 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -70,8 +70,9 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/clients` Clients | list with search and paging; **New client** for `clients.manage` |
 | `/clients/new`, `/clients/:id` | create form; client page with tabs Details (edit, deactivate), Contacts, Files, Account |
 | `/invoices`, `/payments` | every invoice / payment in the office with filters (status, type, unpaid/overdue, unapplied, dates, search); rows link to the client and the file, where changes are made |
+| `/reports` Reports | one page for clearance files, client balances, expenses, revenue and employee performance; filters, totals, export |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
-| shipments, documents, expenses, accounting, reports, users, settings | placeholder |
+| shipments, documents, expenses, accounting, users, settings | placeholder |
 
 ## Clearance file workspace
 
@@ -170,6 +171,17 @@ The **Expenses** tab (needs `expenses.view`) lists the costs recorded against th
 * **Files** (needs `clearance_files.view`) and **Account** (needs `invoices.view` and `payments.view`, as the API requires): the balance is shown **per currency** and is never summed
   across currencies; the statement can be filtered by currency and dates. A positive net balance means the client owes the office.
 
+### Reports (`features/reports/`)
+
+Every report arrives from the API as one uniform table (`meta.columns`, rows, optional totals), so one page renders them all and each report is just an entry in `REPORTS`
+with the permissions it needs (the same ones the API checks) and the filters it understands. A user sees only the reports they may open.
+
+* **Money:** base-currency reports show plain amounts under a header that names the currency, e.g. "Revenue (USD)"; rows that carry their own `currency` (client balances,
+  expense amounts) show it. Currencies are never added together: client balances show **totals per currency** underneath.
+* **Export** (needs `reports.export`): Excel, CSV or PDF of the current report with the same filters, in the interface language; the API audits every export and re-checks the
+  permissions of the report being exported.
+* Profitability and the financial summary are available from the API and the export, but have no table on this page yet; the trial balance is planned for the accounting screen.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -180,4 +192,4 @@ The **Expenses** tab (needs `expenses.view`) lists the costs recorded against th
 
 ## Next
 
-The remaining office-wide lists (shipments, documents, expenses), accounting; reports, users and settings; code-splitting (the bundle is about 611 kB).
+The remaining office-wide lists (shipments, documents, expenses), accounting; users and settings; code-splitting (the bundle is about 611 kB).

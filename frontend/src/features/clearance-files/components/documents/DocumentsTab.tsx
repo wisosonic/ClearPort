@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Download, FileUp, RotateCcw, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError, download } from '@/lib/api-client';
+import { saveBlob } from '@/lib/save-blob';
 import { formatBytes, formatDate, fullName, type Locale } from '@/lib/format';
 import { can } from '@/lib/permissions';
 import { useAuth } from '@/features/auth/auth';
@@ -15,15 +16,6 @@ const stateTone = { MISSING: 'red', REJECTED_ONLY: 'red', UPLOADED: 'amber', APP
 const LIMIT = 20;
 const errText = (e: unknown, fallback: string) => (e instanceof ApiError ? e.message : fallback);
 const typeName = (t: { nameEn: string; nameAr: string }, locale: Locale) => (locale === 'ar' ? t.nameAr : t.nameEn);
-
-/** Saves a downloaded blob with the file's own name. */
-function saveBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 function useRefresh(fileId: string) {
   const qc = useQueryClient();
