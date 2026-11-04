@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 233 tests
+npm test -w frontend   # 250 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -73,7 +73,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/reports` Reports | one page for clearance files, client balances, expenses, revenue and employee performance; filters, totals, export |
 | `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal), Trial balance, Chart of accounts, Cash and bank, Exchange rates |
 | `/users` Users and roles | tabs Users (add, edit, deactivate) and Roles (built-in and custom, permissions) |
-| `/settings` Settings | tabs Office, Branches, Tax, Financial categories (needs `settings.manage`) |
+| `/settings` Settings | tabs Office, Branches, Tax, Financial categories (need `settings.manage`) and Workflows (needs `workflows.manage`); each tab shows only to those who hold its permission |
 | `/shipments`, `/documents`, `/expenses` | every shipment / document / expense in the office with filters; rows link to the file, where changes are made. Shipments search BL, container, vessel and voyage; documents search the file name |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
 
@@ -223,7 +223,10 @@ Needs `settings.manage`.
 * **Tax:** off until the office turns it on and types its own rate (nothing is assumed). It applies to the taxable service-fee lines of **new** invoices; issued invoices keep their rate.
 * **Financial categories:** each category's *treatment* decides how it behaves: *paid for the client* (recorded as an expense, then re-billed at cost), *office cost* (never billed) or
   *fee the office earns* (billed as a service fee). The kind and treatment are fixed once created; name, billable and taxable can change, and a category can be deactivated.
-* Workflow templates (`workflows.manage`) are configured through the API and have no screen yet.
+* **Workflows** (needs `workflows.manage`): a template is the set of stages a file moves through and the rules for each move. One template per file type is *in use* for new files (starting one stops
+  the other of the same type); files already in progress keep the template they began with. A new template starts **not in use** so a half-built one is never picked up. Stage codes are fixed once
+  created and stored upper-case; names are given in English and Arabic. A **move** (transition) can require complete documents, no open tasks, a reason, an approval, and/or a permission; a final
+  stage cannot have moves out of it, and a stage with moves out of it cannot be made final until they are removed (the API explains each refusal). Stages cannot be deleted or reordered yet.
 
 ## Adding a screen
 
@@ -235,4 +238,4 @@ Needs `settings.manage`.
 
 ## Next
 
-The workflow-template editor; code-splitting (the bundle is about 611 kB).
+Code-splitting (the bundle is about 611 kB).
