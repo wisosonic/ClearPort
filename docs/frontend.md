@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 191 tests
+npm test -w frontend   # 207 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -72,8 +72,9 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/invoices`, `/payments` | every invoice / payment in the office with filters (status, type, unpaid/overdue, unapplied, dates, search); rows link to the client and the file, where changes are made |
 | `/reports` Reports | one page for clearance files, client balances, expenses, revenue and employee performance; filters, totals, export |
 | `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal), Trial balance, Chart of accounts, Cash and bank, Exchange rates |
+| `/users` Users and roles | tabs Users (add, edit, deactivate) and Roles (built-in and custom, permissions) |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
-| shipments, documents, expenses, users, settings | placeholder |
+| shipments, documents, expenses, settings | placeholder |
 
 ## Clearance file workspace
 
@@ -199,6 +200,18 @@ Needs `accounting.view`; posting and reversing need `accounting.post`.
 * **Exchange rates:** each shown in plain words ("1 USD = 89500 LBP"). Rates are **append-only**: there is no edit; to correct a rate, record a new one (the latest in force on a date is used).
   The base currency has no rate. Leave the convention on *Automatic* unless you know you need the other.
 
+### Users and roles (`features/users/`)
+
+Listing users and roles needs `users.manage` (that is what the API requires); changing roles needs `roles.manage`.
+
+* **Add a user:** e-mail, names, branch, one or more roles. The password is needed for a new person (10+ characters) and left empty when they already have a ClearPort account in another
+  office; they are then just added to this one.
+* **Edit:** roles and branch. Name and phone belong to the person and may be shared between offices, so they are sent only when changed (the API refuses to change a shared profile).
+* **Deactivate / reactivate:** you cannot deactivate yourself, and the office must keep one active Owner (the API says so). Deactivating ends the person's sessions immediately.
+* **Roles:** built-in roles are read-only. A custom role has a code (upper-cased by the API), a name and permissions grouped by area. You can only grant permissions you hold
+  yourself; the others are disabled, and the API refuses anyway.
+* Permission descriptions come from the API in English; area names are translated.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -209,4 +222,4 @@ Needs `accounting.view`; posting and reversing need `accounting.post`.
 
 ## Next
 
-The remaining office-wide lists (shipments, documents, expenses), users and settings; code-splitting (the bundle is about 611 kB).
+The remaining office-wide lists (shipments, documents, expenses), settings (office, branches, tax, categories, workflows); code-splitting (the bundle is about 611 kB).

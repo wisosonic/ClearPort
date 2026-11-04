@@ -15,6 +15,7 @@ import { ClientsPage } from '@/features/clients/pages/ClientsPage';
 import { InvoicesPage } from '@/features/finance/pages/InvoicesPage';
 import { PaymentsPage } from '@/features/finance/pages/PaymentsPage';
 import { ReportsPage } from '@/features/reports/pages/ReportsPage';
+import { UsersPage } from '@/features/users/pages/UsersPage';
 import { TasksPage } from '@/features/tasks/TasksPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { DashboardLayout } from './layouts/DashboardLayout';
@@ -58,6 +59,7 @@ export const routes: RouteObject[] = [
       { path: 'clients/new', element: guard(['clients.manage'], <NewClientPage />) },
       { path: 'clients/:id', element: guard(['clients.view'], <ClientDetailPage />) },
       { path: 'tasks', element: guard(['tasks.view'], <TasksPage />) },
+      { path: 'users', element: guard(['users.manage', 'roles.manage'], <UsersPage />) },
       { path: 'accounting', element: guard(['accounting.view'], <AccountingPage />) },
       { path: 'reports', element: guard(['reports.view'], <ReportsPage />) },
       { path: 'invoices', element: guard(['invoices.view'], <InvoicesPage />) },
