@@ -11,7 +11,7 @@ Product and technical direction: [ClearPort_Project_Specification.md](ClearPort_
 | Part | Status |
 |---|---|
 | **Backend** (NestJS + Prisma + SQLite) | Phases 1–6 complete, 515 tests. Auth, multi-tenancy, RBAC, users/roles/branches/settings, CRM, clearance files, documents, workflow, tasks, finance and accounting, dashboard, reports, Excel/CSV/PDF export, printable invoices and statements, background jobs, backup/restore, audit log, security review. |
-| **Frontend** (React + Vite) | 57 tests. Sign-in (including office selection), app shell with permission-aware navigation, English/Arabic with RTL, dashboard, client list, and the clearance-file workspace: list, create form, file page with stage moves, close/reopen, assignment, editing, shipments with containers and goods, activity and stage history. Other sections show a "being built" placeholder. |
+| **Frontend** (React + Vite) | 72 tests. Sign-in (including office selection), app shell with permission-aware navigation, English/Arabic with RTL, dashboard, client list, and the clearance-file workspace: list, create form, file page with stage moves, close/reopen, assignment, editing, shipments with containers and goods, documents (checklist, upload, review), activity and stage history. Other sections show a "being built" placeholder. |
 
 Architecture and API notes: [docs/architecture.md](docs/architecture.md) (backend) and
 [docs/frontend.md](docs/frontend.md). Database: [docs/database.md](docs/database.md).
@@ -63,7 +63,7 @@ Then, from the repository root:
 ```bash
 npm run start:api             # API on http://localhost:3000/api/v1
 npm run dev                   # web app on http://localhost:5173 (proxies /api to the API)
-npm test -w frontend          # frontend tests (57)
+npm test -w frontend          # frontend tests (72)
 ```
 
 Set `VITE_API_TARGET` to point the web app at a different API address.

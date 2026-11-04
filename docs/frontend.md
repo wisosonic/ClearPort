@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 57 tests
+npm test -w frontend   # 72 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -66,7 +66,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/` Dashboard | done: file counts, my tasks, finance block only with finance permissions |
 | `/files` Clearance files | list with search, filters and paging; **New file** button with the create permission |
 | `/files/new` | create form: client search, type, priority, branch, arrival date, customs reference, notes |
-| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Activity, Stage history |
+| `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Activity, Stage history |
 | `/clients` Clients | list with search and paging |
 | shipments, documents, tasks, invoices, payments, expenses, accounting, reports, users, settings | placeholder |
 
@@ -97,6 +97,21 @@ and a file that is not closed or cancelled; otherwise the tab is read-only and s
 * **Numbers** (weights, quantities, prices) are typed as plain decimals and sent as strings; they are never converted to floats.
 * Not yet on this tab: shipping agent / freight forwarder pickers (shown read-only), HS code picker (no codes are seeded), deleting entries.
 
+### Documents tab
+
+Shown only with `documents.view` (`components/documents/`).
+
+* **Checklist** (`GET /clearance-files/:id/document-requirements`): each required type with its state (missing, uploaded,
+  approved, rejected) and the stage it is needed before. This is the same data that blocks stage moves in the stage panel, and
+  uploading refreshes both. A missing item has an **Upload** button that pre-selects its type.
+* **Upload** (`documents.upload`): type + file + notes, sent as multipart. The server checks the real file content against its
+  extension and the size limit; its message is shown when a file is refused. A new version of an existing document is uploaded from its row.
+* **Review** (`documents.review`): approve with one click; reject needs a reason; return to review. **Void** (`documents.delete`)
+  asks for confirmation and keeps the file and its history on the server.
+* **Download:** the API needs the bearer token, so the file is fetched with it and saved from memory under its own name (Arabic names
+  included). It is not a plain link. `api.upload()` and `download()` in `lib/api-client.ts` do this, with the same token refresh as other calls.
+* Closed and cancelled files are read-only except for downloading.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -107,5 +122,5 @@ and a file that is not closed or cancelled; otherwise the tab is read-only and s
 
 ## Next
 
-The remaining tabs of the file page (documents with upload and checklist; tasks; invoices and payments; expenses); client details and forms; tasks and
+The remaining tabs of the file page (tasks; invoices and payments; expenses); client details and forms; tasks and
 documents; finance screens; reports, users and settings; code-splitting (the bundle is about 611 kB).

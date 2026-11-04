@@ -156,7 +156,8 @@
       "overview": "Overview",
       "activity": "Activity",
       "stages": "Stage history",
-      "shipments": "Shipments"
+      "shipments": "Shipments",
+      "documents": "Documents"
     },
     "summary": {
       "title": "Summary",
@@ -246,5 +247,48 @@
     "numberRequired": "Enter the container number",
     "descriptionRequired": "Describe the goods",
     "currencyRequired": "Choose a currency for the price"
+  },
+  "docs": {
+    "title": "Documents",
+    "checklist": "Required documents",
+    "missingCount": "Missing: {{count}}",
+    "complete": "Complete",
+    "noRequirements": "No document requirements are set for this type of file.",
+    "required": "Required",
+    "optional": "Optional",
+    "beforeStage": "needed before {{stage}}",
+    "states": {
+      "MISSING": "Missing",
+      "UPLOADED": "Uploaded",
+      "APPROVED": "Approved",
+      "REJECTED_ONLY": "Rejected, upload again"
+    },
+    "upload": "Upload",
+    "uploadTitle": "Upload a document",
+    "type": "Document type",
+    "pickType": "Choose a type…",
+    "typeRequired": "Choose the type of document",
+    "file": "File",
+    "fileRequired": "Choose a file",
+    "notes": "Notes",
+    "none": "No documents uploaded yet",
+    "version": "Version",
+    "size": "Size",
+    "uploadedBy": "Uploaded by",
+    "download": "Download",
+    "approve": "Approve",
+    "reject": "Reject",
+    "returnToReview": "Return to review",
+    "newVersion": "New version",
+    "void": "Void",
+    "voidConfirm": "Void this document? It stops counting, but the file and its history are kept.",
+    "rejectReason": "Why is it rejected?",
+    "readOnly": "This file is closed or cancelled, so documents cannot be changed.",
+    "statuses": {
+      "PENDING_REVIEW": "Pending review",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "VOID": "Void"
+    }
   }
 }

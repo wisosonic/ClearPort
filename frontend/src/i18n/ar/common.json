@@ -160,7 +160,8 @@
       "overview": "نظرة عامة",
       "activity": "النشاط",
       "stages": "سجل المراحل",
-      "shipments": "الشحنات"
+      "shipments": "الشحنات",
+      "documents": "المستندات"
     },
     "summary": {
       "title": "الملخص",
@@ -250,5 +251,48 @@
     "numberRequired": "أدخل رقم الحاوية",
     "descriptionRequired": "صِف البضاعة",
     "currencyRequired": "اختر عملة السعر"
+  },
+  "docs": {
+    "title": "المستندات",
+    "checklist": "المستندات المطلوبة",
+    "missingCount": "ناقص: {{count}}",
+    "complete": "مكتملة",
+    "noRequirements": "لا توجد مستندات مطلوبة لهذا النوع من الملفات.",
+    "required": "مطلوب",
+    "optional": "اختياري",
+    "beforeStage": "مطلوب قبل {{stage}}",
+    "states": {
+      "MISSING": "ناقص",
+      "UPLOADED": "مرفوع",
+      "APPROVED": "معتمد",
+      "REJECTED_ONLY": "مرفوض، أعد الرفع"
+    },
+    "upload": "رفع",
+    "uploadTitle": "رفع مستند",
+    "type": "نوع المستند",
+    "pickType": "اختر النوع…",
+    "typeRequired": "اختر نوع المستند",
+    "file": "الملف",
+    "fileRequired": "اختر ملفاً",
+    "notes": "ملاحظات",
+    "none": "لم يُرفع أي مستند بعد",
+    "version": "الإصدار",
+    "size": "الحجم",
+    "uploadedBy": "رفعه",
+    "download": "تنزيل",
+    "approve": "اعتماد",
+    "reject": "رفض",
+    "returnToReview": "إعادة للمراجعة",
+    "newVersion": "إصدار جديد",
+    "void": "إلغاء",
+    "voidConfirm": "هل تريد إلغاء هذا المستند؟ لن يُحتسب بعد الآن، لكن الملف وسجله يبقيان محفوظين.",
+    "rejectReason": "ما سبب الرفض؟",
+    "readOnly": "هذا الملف مغلق أو ملغى، لذلك لا يمكن تعديل المستندات.",
+    "statuses": {
+      "PENDING_REVIEW": "بانتظار المراجعة",
+      "APPROVED": "معتمد",
+      "REJECTED": "مرفوض",
+      "VOID": "ملغى"
+    }
   }
 }

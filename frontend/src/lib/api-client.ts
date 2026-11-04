@@ -86,21 +86,41 @@ function url(path: string, query?: RequestOptions['query']) {
 
 async function send(path: string, o: RequestOptions): Promise<Response> {
   const headers: Record<string, string> = {};
-  if (o.body !== undefined) headers['Content-Type'] = 'application/json';
+  const multipart = typeof FormData !== 'undefined' && o.body instanceof FormData;
+  if (o.body !== undefined && !multipart) headers['Content-Type'] = 'application/json';
   if (!o.anonymous && accessToken) headers.Authorization = `Bearer ${accessToken}`;
-  return fetch(url(path, o.query), { method: o.method ?? 'GET', headers, body: o.body === undefined ? undefined : JSON.stringify(o.body), signal: o.signal });
+  const body = o.body === undefined ? undefined : multipart ? (o.body as FormData) : JSON.stringify(o.body);
+  return fetch(url(path, o.query), { method: o.method ?? 'GET', headers, body, signal: o.signal });
 }
 
-/** Raw envelope: `{ data, meta? }`. */
-export async function request<T = unknown>(path: string, o: RequestOptions = {}): Promise<{ data: T; meta?: PageMeta }> {
+/** Sends the request, refreshing the session once on 401. Returns the raw response. */
+async function exchange(path: string, o: RequestOptions): Promise<Response> {
   let res = await send(path, o);
   if (res.status === 401 && !o.anonymous) {
     if (await refreshSession()) res = await send(path, o);
     else { onSessionLost(); }
   }
+  return res;
+}
+
+/** Raw envelope: `{ data, meta? }`. */
+export async function request<T = unknown>(path: string, o: RequestOptions = {}): Promise<{ data: T; meta?: PageMeta }> {
+  const res = await exchange(path, o);
   const body = await parse(res);
   if (!res.ok) throw toError(res, body);
   return { data: (body?.data ?? null) as T, meta: body?.meta };
+}
+
+/** A file from the API (needs the bearer token, so it cannot be a plain link). Returns the bytes and the server's file name. */
+export async function download(path: string, query?: RequestOptions['query']): Promise<{ blob: Blob; filename: string | null }> {
+  const res = await exchange(path, { query });
+  if (!res.ok) throw toError(res, await parse(res));
+  const disposition = res.headers.get('Content-Disposition') ?? '';
+  const star = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+  const plain = /filename="([^"]+)"/i.exec(disposition);
+  let filename: string | null = null;
+  try { filename = star ? decodeURIComponent(star[1]) : plain ? plain[1] : null; } catch { filename = plain ? plain[1] : null; }
+  return { blob: await res.blob(), filename };
 }
 
 export const api = {
@@ -109,6 +129,8 @@ export const api = {
     const r = await request<T[]>(path, { query, signal });
     return { data: r.data ?? [], meta: r.meta ?? { page: 1, limit: r.data?.length ?? 0, total: r.data?.length ?? 0 } };
   },
+  /** multipart/form-data upload (the browser sets the boundary) */
+  upload: async <T>(path: string, form: FormData) => (await request<T>(path, { method: 'POST', body: form })).data,
   post: async <T>(path: string, body?: unknown, o: Omit<RequestOptions, 'method' | 'body'> = {}) => (await request<T>(path, { ...o, method: 'POST', body: body ?? {} })).data,
   patch: async <T>(path: string, body: unknown) => (await request<T>(path, { method: 'PATCH', body })).data,
   put: async <T>(path: string, body: unknown) => (await request<T>(path, { method: 'PUT', body })).data,

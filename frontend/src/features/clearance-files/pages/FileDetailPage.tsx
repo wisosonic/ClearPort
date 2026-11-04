@@ -4,21 +4,28 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api-client';
 import { cn } from '@/lib/cn';
+import { can } from '@/lib/permissions';
+import { useAuth } from '@/features/auth/auth';
 import { Badge, Card, ErrorState, Spinner } from '@/components/ui/primitives';
 import { AssignControl } from '../components/AssignControl';
 import { ActivityTab, StageHistoryTab } from '../components/HistoryTabs';
 import { OverviewTab } from '../components/OverviewTab';
+import { DocumentsTab } from '../components/documents/DocumentsTab';
 import { ShipmentsTab } from '../components/shipments/ShipmentsTab';
 import { StagePanel } from '../components/StagePanel';
 import { priorityTone, statusTone, type FileDetail } from '../lib';
 
-const TABS = ['overview', 'shipments', 'activity', 'stages'] as const;
-type Tab = (typeof TABS)[number];
+const ALL_TABS = [
+  { key: 'overview' }, { key: 'shipments' }, { key: 'documents', permission: 'documents.view' }, { key: 'activity' }, { key: 'stages' },
+] as const;
+type Tab = (typeof ALL_TABS)[number]['key'];
 
 export function FileDetailPage() {
   const { t } = useTranslation();
   const { id = '' } = useParams();
+  const { permissions } = useAuth();
   const [tab, setTab] = useState<Tab>('overview');
+  const tabs = ALL_TABS.filter((x) => !('permission' in x) || can(permissions, x.permission));
   const q = useQuery({ queryKey: ['file', id], queryFn: ({ signal }) => api.get<FileDetail>(`/clearance-files/${id}`, undefined, signal) });
 
   if (q.isPending) return <Spinner />;
@@ -49,7 +56,7 @@ export function FileDetailPage() {
       </div>
 
       <div role="tablist" aria-label={t('files.sections')} className="flex gap-1 border-b border-slate-200">
-        {TABS.map((k) => (
+        {tabs.map(({ key: k }) => (
           <button
             key={k} role="tab" type="button" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cn('-mb-px border-b-2 px-4 py-2 text-sm font-medium', tab === k ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-600 hover:text-slate-900')}
@@ -61,6 +68,7 @@ export function FileDetailPage() {
       <div role="tabpanel">
         {tab === 'overview' && <OverviewTab file={file} />}
         {tab === 'shipments' && <ShipmentsTab file={file} />}
+        {tab === 'documents' && <DocumentsTab file={file} />}
         {tab === 'activity' && <ActivityTab fileId={file.id} />}
         {tab === 'stages' && <StageHistoryTab fileId={file.id} />}
       </div>
