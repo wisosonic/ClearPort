@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 268 tests
+npm test -w frontend   # 279 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -77,6 +77,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/shipments`, `/documents`, `/expenses` | every shipment / document / expense in the office with filters; rows link to the file, where changes are made. Shipments search BL, container, vessel and voyage; documents search the file name |
 | `/account` My account | who I am in this office, and change my password (reached from my name in the header) |
 | `/audit` Audit log | who did what and when, with filters and the before/after of each change (needs `audit.view`) |
+| `/parties` Business parties | shipping agents, freight forwarders, suppliers, transporters: list, add, edit (same permissions as clients) |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
 
 ## Clearance file workspace
@@ -245,6 +246,15 @@ Needs `audit.view`. A permanent, read-only record: the API (and the database its
 * **Filters:** exact action code (suggestions offered), kind of record, person (needs `users.manage` to list people), and a date range that covers whole **local** days.
 * **Open an entry** to see **what changed**: only the fields that differ between before and after (a new record lists all its fields), plus IP address, device and the full record id.
 * Action and record names are shown as readable English ("Invoice issued") in both languages; they are the codes the system records.
+
+### Business parties (`features/parties/`)
+
+Shipping agents, freight forwarders, suppliers, transporters. They are **separate from clients**: a company can be both, and the two records are independent. Viewing needs `clients.view`,
+adding and editing needs `clients.manage`. There is no deactivate or delete (the API has none).
+
+* The **shipment form** now has **Shipping agent** and **Freight forwarder** pickers (searchable, each limited to its own kind). They show only to people who can list parties
+  (`clients.view`); for everyone else the saved agent and forwarder are left untouched rather than cleared. The shipment details show both.
+* The API does not check the *kind* of party chosen as a shipment's agent, so only the screen keeps agents and forwarders apart.
 
 ## Adding a screen
 

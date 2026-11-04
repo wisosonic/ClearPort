@@ -1,4 +1,4 @@
-import { Banknote, BarChart3, BookOpen, CheckSquare, ScrollText, FileText, FolderOpen, LayoutDashboard, Receipt, Settings, Ship, Users, UserCog, type LucideIcon } from 'lucide-react';
+import { Banknote, BarChart3, BookOpen, CheckSquare, Handshake, ScrollText, FileText, FolderOpen, LayoutDashboard, Receipt, Settings, Ship, Users, UserCog, type LucideIcon } from 'lucide-react';
 
 export interface NavItem { to: string; labelKey: string; icon: LucideIcon; /** any one of these shows the item */ permissions: string[]; built: boolean }
 export interface NavGroup { titleKey?: string; items: NavItem[] }
@@ -10,6 +10,7 @@ export const NAV: NavGroup[] = [
       { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard, permissions: [], built: true },
       { to: '/files', labelKey: 'nav.files', icon: FolderOpen, permissions: ['clearance_files.view'], built: true },
       { to: '/clients', labelKey: 'nav.clients', icon: Users, permissions: ['clients.view'], built: true },
+      { to: '/parties', labelKey: 'nav.parties', icon: Handshake, permissions: ['clients.view'], built: true },
       { to: '/shipments', labelKey: 'nav.shipments', icon: Ship, permissions: ['clearance_files.view'], built: true },
       { to: '/documents', labelKey: 'nav.documents', icon: FileText, permissions: ['documents.view'], built: true },
       { to: '/tasks', labelKey: 'nav.tasks', icon: CheckSquare, permissions: ['tasks.view'], built: true },

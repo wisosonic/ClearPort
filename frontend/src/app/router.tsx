@@ -5,6 +5,7 @@ import { canAny } from '@/lib/permissions';
 import { Spinner } from '@/components/ui/primitives';
 import { useAuth } from '@/features/auth/auth';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { PartiesPage } from '@/features/parties/PartiesPage';
 import { AuditPage } from '@/features/audit/AuditPage';
 import { AccountPage } from '@/features/account/AccountPage';
 import { AccountingPage } from '@/features/accounting/pages/AccountingPage';
@@ -64,6 +65,7 @@ export const routes: RouteObject[] = [
       { path: 'clients', element: guard(['clients.view'], <ClientsPage />) },
       { path: 'clients/new', element: guard(['clients.manage'], <NewClientPage />) },
       { path: 'clients/:id', element: guard(['clients.view'], <ClientDetailPage />) },
+      { path: 'parties', element: guard(['clients.view'], <PartiesPage />) },
       { path: 'tasks', element: guard(['tasks.view'], <TasksPage />) },
       { path: 'settings', element: guard(['settings.manage', 'workflows.manage'], <SettingsPage />) },
       { path: 'users', element: guard(['users.manage', 'roles.manage'], <UsersPage />) },

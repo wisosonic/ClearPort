@@ -19,7 +19,8 @@
     "reports": "Reports",
     "users": "Users & Roles",
     "settings": "Settings",
-    "audit": "Audit log"
+    "audit": "Audit log",
+    "parties": "Business parties"
   },
   "auth": {
     "signIn": "Sign in",
@@ -306,7 +307,8 @@
     "invalidCountry": "Two letters, for example LB",
     "numberRequired": "Enter the container number",
     "descriptionRequired": "Describe the goods",
-    "currencyRequired": "Choose a currency for the price"
+    "currencyRequired": "Choose a currency for the price",
+    "forwarder": "Freight forwarder"
   },
   "docs": {
     "title": "Documents",
@@ -850,5 +852,21 @@
     "ip": "IP address",
     "device": "Device",
     "recordId": "Record id"
+  },
+  "parties": {
+    "title": "Business parties",
+    "intro": "Shipping agents, freight forwarders, suppliers and transporters. They are separate from clients: a company can be both, and the two records are independent.",
+    "add": "Add party",
+    "edit": "Edit party",
+    "search": "Search parties",
+    "searchPlaceholder": "Name, tax no., phone, email…",
+    "none": "No parties match.",
+    "types": {
+      "SHIPPING_AGENT": "Shipping agent",
+      "FREIGHT_FORWARDER": "Freight forwarder",
+      "SUPPLIER": "Supplier",
+      "TRANSPORTER": "Transporter",
+      "OTHER": "Other"
+    }
   }
 }

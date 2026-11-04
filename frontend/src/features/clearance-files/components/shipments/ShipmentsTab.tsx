@@ -44,6 +44,7 @@ function ShipmentCard({ file, shipment, editable }: { file: FileDetail; shipment
           <Field label={t('ship.originPort')}>{port(s.originPort)}</Field>
           <Field label={t('ship.destinationPort')}>{port(s.destinationPort)}</Field>
           <Field label={t('ship.agent')}>{s.shippingAgent?.name}</Field>
+          <Field label={t('ship.forwarder')}>{s.freightForwarder?.name}</Field>
           <Field label={t('ship.etd')}>{s.etd ? formatDate(s.etd, locale) : ''}</Field>
           <Field label={t('ship.eta')}>{s.eta ? formatDate(s.eta, locale) : ''}</Field>
           <Field label={t('ship.actualArrival')}>{s.actualArrivalAt ? formatDate(s.actualArrivalAt, locale) : ''}</Field>

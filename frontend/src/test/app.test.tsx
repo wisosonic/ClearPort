@@ -119,7 +119,7 @@ describe('permissions in the interface', () => {
     tokens.set({ accessToken: '', refreshToken: 'S'.repeat(40) });
     mount('/');
     await screen.findByRole('heading', { name: 'Dashboard' });
-    expect(links()).toEqual(['Dashboard', 'Clients']);
+    expect(links()).toEqual(['Dashboard', 'Clients', 'Business parties']); // parties are listed with the same permission as clients
   });
 
   it('shows the finance block on the dashboard only with finance permissions', async () => {

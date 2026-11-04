@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { api, ApiError } from '@/lib/api-client';
 import { useDebounced } from '@/hooks/useDebounced';
+import { can } from '@/lib/permissions';
+import { useAuth } from '@/features/auth/auth';
+import { PartyPicker } from '@/features/parties/PartyPicker';
 import { Alert, Button, Field, Input, Select, Textarea } from '@/components/ui/primitives';
 import { dateToIso, isoToDate } from '../../lib';
 import type { Container, Goods, Shipment } from './types';
@@ -74,19 +77,23 @@ function PortPicker({ id, value, current, onChange }: { id: string; value: strin
 const shipmentSchema = z.object({
   shipmentType: z.enum(SHIPMENT_TYPES), vesselName: z.string().max(150, 'files.tooLong'), voyageNumber: z.string().max(50, 'files.tooLong'),
   billOfLadingNumber: z.string().max(60, 'files.tooLong'), masterBlNumber: z.string().max(60, 'files.tooLong'), houseBlNumber: z.string().max(60, 'files.tooLong'),
-  originPortId: z.string(), destinationPortId: z.string(), etd: z.string(), eta: z.string(), actualArrivalAt: z.string(), notes: z.string().max(2000, 'files.tooLong'),
+  originPortId: z.string(), destinationPortId: z.string(), shippingAgentId: z.string(), freightForwarderId: z.string(), etd: z.string(), eta: z.string(), actualArrivalAt: z.string(), notes: z.string().max(2000, 'files.tooLong'),
 });
 type ShipmentValues = z.infer<typeof shipmentSchema>;
 
 export function ShipmentForm({ fileId, shipment, onDone }: { fileId: string; shipment?: Shipment; onDone: () => void }) {
   const { t } = useTranslation();
   const refresh = useRefresh(fileId);
+  const { permissions } = useAuth();
+  // Listing parties needs clients.view. Without it the pickers are hidden and the saved agent and forwarder are left exactly as they are.
+  const canPickParties = can(permissions, 'clients.view');
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ShipmentValues>({
     resolver: zodResolver(shipmentSchema),
     defaultValues: {
       shipmentType: (shipment?.shipmentType as ShipmentValues['shipmentType']) ?? 'SEA', vesselName: shipment?.vesselName ?? '', voyageNumber: shipment?.voyageNumber ?? '',
       billOfLadingNumber: shipment?.billOfLadingNumber ?? '', masterBlNumber: shipment?.masterBlNumber ?? '', houseBlNumber: shipment?.houseBlNumber ?? '',
       originPortId: shipment?.originPort?.id ?? '', destinationPortId: shipment?.destinationPort?.id ?? '',
+      shippingAgentId: shipment?.shippingAgent?.id ?? '', freightForwarderId: shipment?.freightForwarder?.id ?? '',
       etd: isoToDate(shipment?.etd), eta: isoToDate(shipment?.eta), actualArrivalAt: isoToDate(shipment?.actualArrivalAt), notes: shipment?.notes ?? '',
     },
   });
@@ -97,6 +104,7 @@ export function ShipmentForm({ fileId, shipment, onDone }: { fileId: string; shi
           shipmentType: v.shipmentType, vesselName: v.vesselName.trim(), voyageNumber: v.voyageNumber.trim(), billOfLadingNumber: v.billOfLadingNumber.trim(),
           masterBlNumber: v.masterBlNumber.trim(), houseBlNumber: v.houseBlNumber.trim(), notes: v.notes.trim(),
           originPortId: v.originPortId || null, destinationPortId: v.destinationPortId || null,
+          ...(canPickParties ? { shippingAgentId: v.shippingAgentId || null, freightForwarderId: v.freightForwarderId || null } : {}),
           etd: dateToIso(v.etd) ?? null, eta: dateToIso(v.eta) ?? null, actualArrivalAt: dateToIso(v.actualArrivalAt) ?? null,
         });
       }
@@ -104,6 +112,7 @@ export function ShipmentForm({ fileId, shipment, onDone }: { fileId: string; shi
         shipmentType: v.shipmentType, vesselName: text(v.vesselName), voyageNumber: text(v.voyageNumber), billOfLadingNumber: text(v.billOfLadingNumber),
         masterBlNumber: text(v.masterBlNumber), houseBlNumber: text(v.houseBlNumber), notes: text(v.notes),
         originPortId: v.originPortId || undefined, destinationPortId: v.destinationPortId || undefined,
+        ...(canPickParties ? { shippingAgentId: v.shippingAgentId || undefined, freightForwarderId: v.freightForwarderId || undefined } : {}),
         etd: dateToIso(v.etd), eta: dateToIso(v.eta), actualArrivalAt: dateToIso(v.actualArrivalAt),
       });
     },
@@ -127,6 +136,8 @@ export function ShipmentForm({ fileId, shipment, onDone }: { fileId: string; shi
         {text_('houseBlNumber', t('ship.houseBl'), 'ltr')}
         <Field label={t('ship.originPort')} htmlFor="sh-origin"><PortPicker id="sh-origin" value={watch('originPortId')} current={shipment?.originPort} onChange={(v) => setValue('originPortId', v)} /></Field>
         <Field label={t('ship.destinationPort')} htmlFor="sh-destination"><PortPicker id="sh-destination" value={watch('destinationPortId')} current={shipment?.destinationPort} onChange={(v) => setValue('destinationPortId', v)} /></Field>
+        {canPickParties && <Field label={t('ship.agent')} htmlFor="sh-agent"><PartyPicker id="sh-agent" type="SHIPPING_AGENT" value={watch('shippingAgentId')} current={shipment?.shippingAgent} onChange={(v) => setValue('shippingAgentId', v)} /></Field>}
+        {canPickParties && <Field label={t('ship.forwarder')} htmlFor="sh-forwarder"><PartyPicker id="sh-forwarder" type="FREIGHT_FORWARDER" value={watch('freightForwarderId')} current={shipment?.freightForwarder} onChange={(v) => setValue('freightForwarderId', v)} /></Field>}
         <Field label={t('ship.etd')} htmlFor="sh-etd"><Input id="sh-etd" type="date" {...register('etd')} /></Field>
         <Field label={t('ship.eta')} htmlFor="sh-eta"><Input id="sh-eta" type="date" {...register('eta')} /></Field>
         <Field label={t('ship.actualArrival')} htmlFor="sh-actual"><Input id="sh-actual" type="date" {...register('actualArrivalAt')} /></Field>
