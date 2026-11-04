@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api-client';
+import { can } from '@/lib/permissions';
+import { useAuth } from '@/features/auth/auth';
 import { useDebounced } from '@/hooks/useDebounced';
 import { Badge, Card, EmptyState, ErrorState, Input, Pagination, Select, Spinner, Td, Th } from '@/components/ui/primitives';
 
@@ -11,6 +14,7 @@ const LIMIT = 20;
 
 export function ClientsPage() {
   const { t } = useTranslation();
+  const { permissions } = useAuth();
   const [search, setSearch] = useState('');
   const [active, setActive] = useState('true');
   const [page, setPage] = useState(1);
@@ -24,7 +28,12 @@ export function ClientsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">{t('clients.title')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">{t('clients.title')}</h1>
+        {can(permissions, 'clients.manage') && (
+          <Link to="/clients/new" className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"><Plus className="size-4" aria-hidden />{t('clients.new')}</Link>
+        )}
+      </div>
       <div className="flex flex-wrap gap-3">
         <div className="relative min-w-60 flex-1">
           <Search className="pointer-events-none absolute start-3 top-2.5 size-4 text-slate-400" aria-hidden />
@@ -50,7 +59,7 @@ export function ClientsPage() {
                   {q.data.data.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50">
                       <Td className="tabular-nums" dir="ltr">{c.clientCode}</Td>
-                      <Td className="font-medium" dir="auto">{c.name}</Td>
+                      <Td className="font-medium" dir="auto"><Link to={`/clients/${c.id}`} className="text-brand-700 hover:underline">{c.name}</Link></Td>
                       <Td>{t(`clients.types.${c.clientType}`, { defaultValue: c.clientType })}</Td>
                       <Td dir="ltr">{c.phone ?? '—'}</Td>
                       <Td dir="ltr">{c.email ?? '—'}</Td>

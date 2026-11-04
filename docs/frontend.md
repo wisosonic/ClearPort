@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 126 tests
+npm test -w frontend   # 144 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -67,7 +67,8 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/files` Clearance files | list with search, filters and paging; **New file** button with the create permission |
 | `/files/new` | create form: client search, type, priority, branch, arrival date, customs reference, notes |
 | `/files/:id` | file page: stage panel, assignment, tabs Overview (details, edit, counts), Shipments, Documents, Tasks, Invoices, Payments, Expenses, Activity, Stage history |
-| `/clients` Clients | list with search and paging |
+| `/clients` Clients | list with search and paging; **New client** for `clients.manage` |
+| `/clients/new`, `/clients/:id` | create form; client page with tabs Details (edit, deactivate), Contacts, Files, Account |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
 | shipments, documents, accounting, reports, users, settings | placeholder |
 
@@ -160,6 +161,14 @@ The **Expenses** tab (needs `expenses.view`) lists the costs recorded against th
 * **Cancel** needs a reason; an expense already on an invoice cannot be cancelled until that invoice is (the API says so).
 * There is no vendor field: the API has no endpoint to list vendors yet.
 
+### Clients (`features/clients/`)
+
+* **Create / edit** (`clients.manage`): one form for both. The code is generated (CLT-00001) unless typed, and cannot be changed afterwards. Empty optional fields are sent as
+  empty so the API clears them. Deactivating a client keeps their history; the list hides inactive clients by default.
+* **Contacts:** add, edit, remove (with confirmation); exactly one is primary, and making another primary moves the mark.
+* **Files** (needs `clearance_files.view`) and **Account** (needs `invoices.view` and `payments.view`, as the API requires): the balance is shown **per currency** and is never summed
+  across currencies; the statement can be filtered by currency and dates. A positive net balance means the client owes the office.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -170,4 +179,4 @@ The **Expenses** tab (needs `expenses.view`) lists the costs recorded against th
 
 ## Next
 
-Client details and forms; the office-wide lists (shipments, documents, invoices, payments, expenses), accounting; reports, users and settings; code-splitting (the bundle is about 611 kB).
+The office-wide lists (shipments, documents, invoices, payments, expenses), accounting; reports, users and settings; code-splitting (the bundle is about 611 kB).

@@ -8,6 +8,8 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ClearanceFilesPage } from '@/features/clearance-files/pages/ClearanceFilesPage';
 import { FileDetailPage } from '@/features/clearance-files/pages/FileDetailPage';
 import { NewFilePage } from '@/features/clearance-files/pages/NewFilePage';
+import { ClientDetailPage } from '@/features/clients/pages/ClientDetailPage';
+import { NewClientPage } from '@/features/clients/pages/NewClientPage';
 import { ClientsPage } from '@/features/clients/pages/ClientsPage';
 import { TasksPage } from '@/features/tasks/TasksPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
@@ -49,6 +51,8 @@ export const routes: RouteObject[] = [
       { path: 'files/new', element: guard(['clearance_files.create'], <NewFilePage />) },
       { path: 'files/:id', element: guard(['clearance_files.view'], <FileDetailPage />) },
       { path: 'clients', element: guard(['clients.view'], <ClientsPage />) },
+      { path: 'clients/new', element: guard(['clients.manage'], <NewClientPage />) },
+      { path: 'clients/:id', element: guard(['clients.view'], <ClientDetailPage />) },
       { path: 'tasks', element: guard(['tasks.view'], <TasksPage />) },
       ...comingSoon,
       { path: '*', element: <Message k="common.notFound" /> },
