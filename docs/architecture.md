@@ -1,7 +1,8 @@
-# ClearPort — Backend architecture (Phase 1 foundation)
+# ClearPort — Backend architecture
 
 Modular monolith: NestJS 11 + Prisma 7 + SQLite. REST under `/api/v1`. See
-[database.md](database.md) for the schema.
+[database.md](database.md) for the schema and [frontend.md](frontend.md) for the web app.
+The backend covers Phases 1–6 (515 tests); the frontend foundation is in place.
 
 ## Request pipeline
 
@@ -334,7 +335,8 @@ CLEARPORT_OWNER_PASSWORD='a-strong-password' npm run tenant:create -w backend --
   --owner-email owner@example.com --owner-first Layla --owner-last Haddad
 ```
 
-This seeds reference data if missing, then creates the office, the main branch, the per-tenant
+On Windows, `runner.bat` does this automatically for a brand-new database (demo office `Demo Office`, owner
+`owner@demo.local` unless `-OwnerEmail`/`-OwnerPassword` are given). The command seeds reference data if missing, then creates the office, the main branch, the per-tenant
 defaults (workflows, document requirements, categories, chart of accounts, cashboxes) and the Owner.
 
 ## Conventions for the next modules
@@ -345,3 +347,12 @@ defaults (workflows, document requirements, categories, chart of accounts, cashb
   failures are translated to `409 BUSINESS_RULE_VIOLATION` by the exception filter.
 * Return `paginated(items, query, total)` for lists; use `orderBy()` with an allow-list for sorting.
 * Cross-tenant tests (`test/tenancy.api.test.ts`) must be extended for every new resource.
+
+## Known gaps
+
+* Mistakenly added shipments, containers and goods cannot be deleted yet.
+* Advance (unallocated) invoice allocation, and a Viewer role that can see accounting and reports.
+* Segregation of duties on expense approval.
+* Condition evaluation for document requirements.
+* Malware scanning of uploads.
+* Periodic foreign-exchange revaluation.

@@ -1,0 +1,83 @@
+# ClearPort — Frontend
+
+React 19 + Vite 7 + TypeScript, Tailwind 4, React Router 7 (data router), TanStack Query 5, React Hook
+Form + Zod, i18next (English and Arabic), Lucide icons, date-fns. Tests: vitest + Testing Library + jsdom.
+Code lives in [`frontend/`](../frontend); the API it talks to is described in [architecture.md](architecture.md).
+
+## Running
+
+```bash
+npm run start:api      # API on :3000 (from the repository root)
+npm run dev            # web app on http://localhost:5173
+npm test -w frontend   # 30 tests
+npm run build -w frontend   # type-check + production build
+```
+
+On Windows, `runner.bat` does everything, including installing dependencies. The dev server proxies
+`/api` to `http://localhost:3000`; set `VITE_API_TARGET` to change it.
+
+## Structure
+
+```
+src/app/            App, router, navigation (nav.ts), dashboard layout, providers
+src/features/       one folder per area: auth, dashboard, clearance-files, clients  (pages/ inside)
+src/components/ui/  shared primitives (buttons, inputs, tables, states)
+src/lib/            api-client, permissions, format, cn
+src/i18n/           en/common.json, ar/common.json, language setup
+src/hooks/          small shared hooks
+src/test/           setup, API client, foundations and app tests
+```
+
+## How it works
+
+**API client** ([api-client.ts](../frontend/src/lib/api-client.ts)). The only code that calls the backend. It
+unwraps the `{ success, data, meta }` envelope, throws `ApiError` (status, code, message, details) on failure,
+and adds the bearer token. The access token is kept **in memory only**; the refresh token is in `localStorage`
+so a reload or second tab stays signed in. When a request gets 401 the client refreshes once (single-flight:
+many failing requests trigger one refresh) and retries; if the session cannot be refreshed the user is sent to
+the login page. Network trouble never signs the user out.
+
+**Authentication** ([auth.tsx](../frontend/src/features/auth/auth.tsx)). Login by e-mail and password; when
+the account belongs to several offices the form asks which one. The session is restored from the stored
+refresh token on load. `GET /auth/me` provides the user, office and permission list. Sign-out revokes the
+session and clears the stored token. Visitors are returned to the page they asked for after signing in.
+
+**Permissions.** `can()` / `canAny()` ([permissions.ts](../frontend/src/lib/permissions.ts)) decide what is
+*shown*: navigation links, dashboard blocks, buttons. Routes are guarded too, so a typed address without
+permission shows "no access" without calling the API. The API remains the real enforcement point.
+
+**Navigation** ([nav.ts](../frontend/src/app/nav.ts)). One list drives the sidebar and the routes. Each item
+has the permissions that reveal it and a `built` flag; sections not built yet render a "being built" placeholder.
+
+**Language and direction.** English and Arabic; the choice is remembered, and `<html lang dir>` switches to
+`ar`/`rtl`. Use only logical Tailwind utilities (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`, `text-start`,
+`border-s`, `rounded-s` …), never `ml-`/`mr-`/`left-`/`right-`: a test fails the build if physical ones appear.
+Translation keys must exist in both languages (also tested). Numbers and money use Latin digits and `1,234.50`
+grouping in both languages; Arabic dates use Lebanese month names.
+
+**Money** arrives as exact decimal strings and is only formatted for display, never added up in the browser.
+Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never summed across currencies.
+
+## Screens
+
+| Route | Status |
+|---|---|
+| `/login` | done (wrong password, office selection) |
+| `/` Dashboard | done: file counts, my tasks, finance block only with finance permissions |
+| `/files` Clearance files | list with search, filters and paging |
+| `/clients` Clients | list with search and paging |
+| shipments, documents, tasks, invoices, payments, expenses, accounting, reports, users, settings | placeholder |
+
+## Adding a screen
+
+1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
+2. Register it in `router.tsx` with `guard([...permissions], <Page />)` and set `built: true` in `nav.ts`.
+3. Add every visible string to **both** `en/common.json` and `ar/common.json`.
+4. Use logical spacing classes only; format money and dates with `lib/format.ts`.
+5. Add a test in `src/test/` that mocks `fetch` (see `app.test.tsx`).
+
+## Next
+
+Clearance-file create form and detail workspace (tabs: overview, shipments/containers/goods, documents,
+tasks, invoices and payments, expenses, activity, status transitions); client details and forms; tasks and
+documents; finance screens; reports, users and settings; code-splitting (the bundle is about 611 kB).
