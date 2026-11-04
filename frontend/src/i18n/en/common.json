@@ -18,7 +18,8 @@
     "management": "Management",
     "reports": "Reports",
     "users": "Users & Roles",
-    "settings": "Settings"
+    "settings": "Settings",
+    "audit": "Audit log"
   },
   "auth": {
     "signIn": "Sign in",
@@ -832,5 +833,22 @@
   "print": {
     "pdfEnglish": "PDF (English)",
     "pdfArabic": "PDF (Arabic)"
+  },
+  "audit": {
+    "title": "Audit log",
+    "intro": "A permanent record of who did what and when. It can be read but never changed or deleted.",
+    "action": "Action",
+    "record": "Record",
+    "actor": "Who",
+    "when": "When",
+    "none": "No entries match.",
+    "system": "System",
+    "noDetails": "No details were recorded for this entry.",
+    "field": "Field",
+    "before": "Before",
+    "after": "After",
+    "ip": "IP address",
+    "device": "Device",
+    "recordId": "Record id"
   }
 }

@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 258 tests
+npm test -w frontend   # 268 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -76,6 +76,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/settings` Settings | tabs Office, Branches, Tax, Financial categories (need `settings.manage`) and Workflows (needs `workflows.manage`); each tab shows only to those who hold its permission |
 | `/shipments`, `/documents`, `/expenses` | every shipment / document / expense in the office with filters; rows link to the file, where changes are made. Shipments search BL, container, vessel and voyage; documents search the file name |
 | `/account` My account | who I am in this office, and change my password (reached from my name in the header) |
+| `/audit` Audit log | who did what and when, with filters and the before/after of each change (needs `audit.view`) |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
 
 ## Clearance file workspace
@@ -235,6 +236,15 @@ Needs `settings.manage`.
   downloaded as a PDF **in English or in Arabic**. The language is chosen per document, not taken from the screen, because the document goes to a client.
 * **Change password:** needs the current password and a new one of 10+ characters that differs from it. The API then ends every session of that person, so the page shows a message and a
   *Sign in again* button. It is on `/account`, reached from the person icon / name in the header (also on phones).
+
+### Audit log (`features/audit/`)
+
+Needs `audit.view`. A permanent, read-only record: the API (and the database itself) allows no edits or deletes, and so does this page.
+
+* **List:** when, who (a *System* entry has no person, e.g. a failed sign-in), the action and the kind of record with a short id. Newest first, 50 per page.
+* **Filters:** exact action code (suggestions offered), kind of record, person (needs `users.manage` to list people), and a date range that covers whole **local** days.
+* **Open an entry** to see **what changed**: only the fields that differ between before and after (a new record lists all its fields), plus IP address, device and the full record id.
+* Action and record names are shown as readable English ("Invoice issued") in both languages; they are the codes the system records.
 
 ## Adding a screen
 

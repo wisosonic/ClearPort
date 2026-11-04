@@ -5,6 +5,7 @@ import { canAny } from '@/lib/permissions';
 import { Spinner } from '@/components/ui/primitives';
 import { useAuth } from '@/features/auth/auth';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { AuditPage } from '@/features/audit/AuditPage';
 import { AccountPage } from '@/features/account/AccountPage';
 import { AccountingPage } from '@/features/accounting/pages/AccountingPage';
 import { ClearanceFilesPage } from '@/features/clearance-files/pages/ClearanceFilesPage';
@@ -68,6 +69,7 @@ export const routes: RouteObject[] = [
       { path: 'users', element: guard(['users.manage', 'roles.manage'], <UsersPage />) },
       { path: 'accounting', element: guard(['accounting.view'], <AccountingPage />) },
       { path: 'reports', element: guard(['reports.view'], <ReportsPage />) },
+      { path: 'audit', element: guard(['audit.view'], <AuditPage />) },
       { path: 'account', element: <AccountPage /> },
       { path: 'shipments', element: guard(['clearance_files.view'], <ShipmentsPage />) },
       { path: 'documents', element: guard(['documents.view'], <DocumentsPage />) },
