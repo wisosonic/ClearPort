@@ -560,5 +560,54 @@
       "csv": "CSV",
       "pdf": "PDF"
     }
+  },
+  "acc": {
+    "title": "المحاسبة",
+    "tabs": {
+      "journal": "اليومية",
+      "trial": "ميزان المراجعة"
+    },
+    "asOf": "حتى تاريخ",
+    "unbalanced": "دفتر الأستاذ غير متوازن. تواصل مع الدعم.",
+    "noEntries": "لا توجد قيود.",
+    "account": "الحساب",
+    "name": "الاسم",
+    "debit": "مدين",
+    "credit": "دائن",
+    "balance": "الرصيد",
+    "balanced": "متوازن",
+    "notBalanced": "غير متوازن",
+    "searchPlaceholder": "رقم القيد أو البيان…",
+    "source": "المصدر",
+    "sources": {
+      "MANUAL": "يدوي",
+      "INVOICE": "فاتورة",
+      "PAYMENT": "دفعة",
+      "EXPENSE": "مصروف",
+      "REVERSAL": "عكس"
+    },
+    "statuses": {
+      "DRAFT": "مسودة",
+      "POSTED": "مرحّل",
+      "REVERSED": "معكوس"
+    },
+    "types": {
+      "ASSET": "أصول",
+      "LIABILITY": "خصوم",
+      "EQUITY": "حقوق ملكية",
+      "REVENUE": "إيرادات",
+      "EXPENSE": "مصاريف"
+    },
+    "newEntry": "قيد يدوي جديد",
+    "addLine": "إضافة سطر",
+    "post": "ترحيل القيد",
+    "descriptionShort": "اكتب بيان القيد (3 أحرف أو أكثر)",
+    "accountRequired": "اختر حساباً",
+    "oneSide": "أدخل مدينًا أو دائنًا",
+    "inBalance": "المدين يساوي الدائن",
+    "difference": "الفرق: {{amount}}",
+    "reverse": "عكس القيد",
+    "reverseReason": "سبب عكس هذا القيد",
+    "sourceManaged": "أُنشئ هذا القيد تلقائياً ({{source}})؛ ألغِ ذلك السجل أو اعكسه بدلاً من ذلك."
   }
 }

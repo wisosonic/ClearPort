@@ -21,7 +21,7 @@ export const NAV: NavGroup[] = [
       { to: '/invoices', labelKey: 'nav.invoices', icon: Receipt, permissions: ['invoices.view'], built: true },
       { to: '/payments', labelKey: 'nav.payments', icon: Banknote, permissions: ['payments.view'], built: true },
       { to: '/expenses', labelKey: 'nav.expenses', icon: Receipt, permissions: ['expenses.view'], built: false },
-      { to: '/accounting', labelKey: 'nav.accounting', icon: BookOpen, permissions: ['accounting.view'], built: false },
+      { to: '/accounting', labelKey: 'nav.accounting', icon: BookOpen, permissions: ['accounting.view'], built: true },
     ],
   },
   {

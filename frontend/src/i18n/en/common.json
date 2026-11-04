@@ -552,5 +552,54 @@
       "csv": "CSV",
       "pdf": "PDF"
     }
+  },
+  "acc": {
+    "title": "Accounting",
+    "tabs": {
+      "journal": "Journal",
+      "trial": "Trial balance"
+    },
+    "asOf": "As of",
+    "unbalanced": "The ledger is out of balance. Contact support.",
+    "noEntries": "No entries.",
+    "account": "Account",
+    "name": "Name",
+    "debit": "Debit",
+    "credit": "Credit",
+    "balance": "Balance",
+    "balanced": "Balanced",
+    "notBalanced": "Not balanced",
+    "searchPlaceholder": "Entry number or description…",
+    "source": "Source",
+    "sources": {
+      "MANUAL": "Manual",
+      "INVOICE": "Invoice",
+      "PAYMENT": "Payment",
+      "EXPENSE": "Expense",
+      "REVERSAL": "Reversal"
+    },
+    "statuses": {
+      "DRAFT": "Draft",
+      "POSTED": "Posted",
+      "REVERSED": "Reversed"
+    },
+    "types": {
+      "ASSET": "Asset",
+      "LIABILITY": "Liability",
+      "EQUITY": "Equity",
+      "REVENUE": "Revenue",
+      "EXPENSE": "Expense"
+    },
+    "newEntry": "New manual entry",
+    "addLine": "Add line",
+    "post": "Post entry",
+    "descriptionShort": "Describe the entry (3 characters or more)",
+    "accountRequired": "Choose an account",
+    "oneSide": "Enter either a debit or a credit",
+    "inBalance": "Debits equal credits",
+    "difference": "Difference: {{amount}}",
+    "reverse": "Reverse entry",
+    "reverseReason": "Reason for reversing this entry",
+    "sourceManaged": "This entry was created automatically ({{source}}); cancel or reverse that record instead."
   }
 }

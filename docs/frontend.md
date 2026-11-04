@@ -9,7 +9,7 @@ Code lives in [`frontend/`](../frontend); the API it talks to is described in [a
 ```bash
 npm run start:api      # API on :3000 (from the repository root)
 npm run dev            # web app on http://localhost:5173
-npm test -w frontend   # 162 tests
+npm test -w frontend   # 176 tests
 npm run build -w frontend   # type-check + production build
 ```
 
@@ -71,8 +71,9 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/clients/new`, `/clients/:id` | create form; client page with tabs Details (edit, deactivate), Contacts, Files, Account |
 | `/invoices`, `/payments` | every invoice / payment in the office with filters (status, type, unpaid/overdue, unapplied, dates, search); rows link to the client and the file, where changes are made |
 | `/reports` Reports | one page for clearance files, client balances, expenses, revenue and employee performance; filters, totals, export |
+| `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal) and Trial balance |
 | `/tasks` Tasks | the office's tasks (members see theirs by default), filters: open/finished, mine, overdue |
-| shipments, documents, expenses, accounting, users, settings | placeholder |
+| shipments, documents, expenses, users, settings | placeholder |
 
 ## Clearance file workspace
 
@@ -182,6 +183,18 @@ with the permissions it needs (the same ones the API checks) and the filters it 
   permissions of the report being exported.
 * Profitability and the financial summary are available from the API and the export, but have no table on this page yet; the trial balance is planned for the accounting screen.
 
+### Accounting (`features/accounting/`)
+
+Needs `accounting.view`; posting and reversing need `accounting.post`.
+
+* **Journal:** every entry with its lines in transaction and base currency. Filter by status, source (manual, invoice, payment, expense, reversal), dates and text.
+* **Manual entry:** two or more lines, each a debit **or** a credit on an active account, with a currency. When all lines share one currency the form shows the running difference; with mixed
+  currencies the API checks balance in the base currency and its message is shown. Entries are posted at once.
+* **Reverse:** only a *posted manual* entry, with a reason. Entries created by an invoice, payment or expense say so and must be undone by cancelling or reversing that record, which keeps
+  the record and the ledger in agreement.
+* **Trial balance:** per account debit, credit and balance in the base currency, as of a date, with a clear warning if the ledger is ever out of balance.
+* Still to come on this screen: chart of accounts, cash accounts, exchange rates.
+
 ## Adding a screen
 
 1. Create `src/features/<area>/pages/<Name>Page.tsx`; fetch with `api.get` / `api.list` inside TanStack Query.
@@ -192,4 +205,4 @@ with the permissions it needs (the same ones the API checks) and the filters it 
 
 ## Next
 
-The remaining office-wide lists (shipments, documents, expenses), accounting; users and settings; code-splitting (the bundle is about 611 kB).
+The remaining office-wide lists (shipments, documents, expenses), the rest of accounting (chart of accounts, cash accounts, exchange rates); users and settings; code-splitting (the bundle is about 611 kB).

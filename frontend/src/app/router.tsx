@@ -5,6 +5,7 @@ import { canAny } from '@/lib/permissions';
 import { Spinner } from '@/components/ui/primitives';
 import { useAuth } from '@/features/auth/auth';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { AccountingPage } from '@/features/accounting/pages/AccountingPage';
 import { ClearanceFilesPage } from '@/features/clearance-files/pages/ClearanceFilesPage';
 import { FileDetailPage } from '@/features/clearance-files/pages/FileDetailPage';
 import { NewFilePage } from '@/features/clearance-files/pages/NewFilePage';
@@ -57,6 +58,7 @@ export const routes: RouteObject[] = [
       { path: 'clients/new', element: guard(['clients.manage'], <NewClientPage />) },
       { path: 'clients/:id', element: guard(['clients.view'], <ClientDetailPage />) },
       { path: 'tasks', element: guard(['tasks.view'], <TasksPage />) },
+      { path: 'accounting', element: guard(['accounting.view'], <AccountingPage />) },
       { path: 'reports', element: guard(['reports.view'], <ReportsPage />) },
       { path: 'invoices', element: guard(['invoices.view'], <InvoicesPage />) },
       { path: 'payments', element: guard(['payments.view'], <PaymentsPage />) },
