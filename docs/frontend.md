@@ -273,6 +273,6 @@ adding and editing needs `clients.manage`. There is no deactivate or delete (the
 4. Use logical spacing classes only; format money and dates with `lib/format.ts`.
 5. Add a test in `src/test/` that mocks `fetch` (see `app.test.tsx`).
 
-## Next
+## Loading
 
-Code-splitting (the bundle is about 611 kB).
+Every screen except the dashboard and login is loaded on first visit (route-level `lazy` in `app/router.tsx`), and React and the other libraries are separate cached chunks. The app's own first download is about 90 kB. Add new screens through `lazyPage(permissions, () => import(...))`.

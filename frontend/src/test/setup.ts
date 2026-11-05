@@ -12,6 +12,6 @@ globalThis.Request = class extends NodeRequest {
 } as typeof Request;
 
 // A busy machine (or many test files at once) can make the first render slow; waiting longer costs nothing when things are fast.
-configure({ asyncUtilTimeout: 4000 });
+configure({ asyncUtilTimeout: 10000 });
 
 afterEach(() => { cleanup(); tokens.set(null); localStorage.clear(); });

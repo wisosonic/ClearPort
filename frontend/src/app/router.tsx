@@ -1,29 +1,10 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { createBrowserRouter, createMemoryRouter, Navigate, useLocation, type RouteObject } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { canAny } from '@/lib/permissions';
 import { Spinner } from '@/components/ui/primitives';
 import { useAuth } from '@/features/auth/auth';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
-import { PartiesPage } from '@/features/parties/PartiesPage';
-import { AuditPage } from '@/features/audit/AuditPage';
-import { AccountPage } from '@/features/account/AccountPage';
-import { AccountingPage } from '@/features/accounting/pages/AccountingPage';
-import { ClearanceFilesPage } from '@/features/clearance-files/pages/ClearanceFilesPage';
-import { FileDetailPage } from '@/features/clearance-files/pages/FileDetailPage';
-import { NewFilePage } from '@/features/clearance-files/pages/NewFilePage';
-import { ClientDetailPage } from '@/features/clients/pages/ClientDetailPage';
-import { NewClientPage } from '@/features/clients/pages/NewClientPage';
-import { ClientsPage } from '@/features/clients/pages/ClientsPage';
-import { InvoicesPage } from '@/features/finance/pages/InvoicesPage';
-import { PaymentsPage } from '@/features/finance/pages/PaymentsPage';
-import { ReportsPage } from '@/features/reports/pages/ReportsPage';
-import { UsersPage } from '@/features/users/pages/UsersPage';
-import { SettingsPage } from '@/features/settings/pages/SettingsPage';
-import { DocumentsPage } from '@/features/office-lists/pages/DocumentsPage';
-import { ExpensesPage } from '@/features/office-lists/pages/ExpensesPage';
-import { ShipmentsPage } from '@/features/office-lists/pages/ShipmentsPage';
-import { TasksPage } from '@/features/tasks/TasksPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { NAV } from './nav';
@@ -49,6 +30,11 @@ const Message = ({ k }: { k: string }) => { const { t } = useTranslation(); retu
 
 const guard = (any: string[], el: ReactNode) => <RequirePermission any={any}>{el}</RequirePermission>;
 
+/** A screen loaded on first visit, so the first page the user sees downloads less code. */
+const lazyPage = (any: string[], load: () => Promise<ComponentType>): Pick<RouteObject, 'lazy'> => ({
+  lazy: async () => { const Page = await load(); return { element: guard(any, <Page />) }; },
+});
+
 const comingSoon = NAV.flatMap((g) => g.items).filter((i) => !i.built).map((i): RouteObject => ({
   path: i.to.slice(1), element: guard(i.permissions, <Message k="common.comingSoon" />),
 }));
@@ -59,25 +45,25 @@ export const routes: RouteObject[] = [
     path: '/', element: <RequireAuth><DashboardLayout /></RequireAuth>,
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: 'files', element: guard(['clearance_files.view'], <ClearanceFilesPage />) },
-      { path: 'files/new', element: guard(['clearance_files.create'], <NewFilePage />) },
-      { path: 'files/:id', element: guard(['clearance_files.view'], <FileDetailPage />) },
-      { path: 'clients', element: guard(['clients.view'], <ClientsPage />) },
-      { path: 'clients/new', element: guard(['clients.manage'], <NewClientPage />) },
-      { path: 'clients/:id', element: guard(['clients.view'], <ClientDetailPage />) },
-      { path: 'parties', element: guard(['clients.view'], <PartiesPage />) },
-      { path: 'tasks', element: guard(['tasks.view'], <TasksPage />) },
-      { path: 'settings', element: guard(['settings.manage', 'workflows.manage'], <SettingsPage />) },
-      { path: 'users', element: guard(['users.manage', 'roles.manage'], <UsersPage />) },
-      { path: 'accounting', element: guard(['accounting.view'], <AccountingPage />) },
-      { path: 'reports', element: guard(['reports.view'], <ReportsPage />) },
-      { path: 'audit', element: guard(['audit.view'], <AuditPage />) },
-      { path: 'account', element: <AccountPage /> },
-      { path: 'shipments', element: guard(['clearance_files.view'], <ShipmentsPage />) },
-      { path: 'documents', element: guard(['documents.view'], <DocumentsPage />) },
-      { path: 'expenses', element: guard(['expenses.view'], <ExpensesPage />) },
-      { path: 'invoices', element: guard(['invoices.view'], <InvoicesPage />) },
-      { path: 'payments', element: guard(['payments.view'], <PaymentsPage />) },
+      { path: 'files', ...lazyPage(['clearance_files.view'], () => import('@/features/clearance-files/pages/ClearanceFilesPage').then((x) => x.ClearanceFilesPage)) },
+      { path: 'files/new', ...lazyPage(['clearance_files.create'], () => import('@/features/clearance-files/pages/NewFilePage').then((x) => x.NewFilePage)) },
+      { path: 'files/:id', ...lazyPage(['clearance_files.view'], () => import('@/features/clearance-files/pages/FileDetailPage').then((x) => x.FileDetailPage)) },
+      { path: 'clients', ...lazyPage(['clients.view'], () => import('@/features/clients/pages/ClientsPage').then((x) => x.ClientsPage)) },
+      { path: 'clients/new', ...lazyPage(['clients.manage'], () => import('@/features/clients/pages/NewClientPage').then((x) => x.NewClientPage)) },
+      { path: 'clients/:id', ...lazyPage(['clients.view'], () => import('@/features/clients/pages/ClientDetailPage').then((x) => x.ClientDetailPage)) },
+      { path: 'parties', ...lazyPage(['clients.view'], () => import('@/features/parties/PartiesPage').then((x) => x.PartiesPage)) },
+      { path: 'tasks', ...lazyPage(['tasks.view'], () => import('@/features/tasks/TasksPage').then((x) => x.TasksPage)) },
+      { path: 'settings', ...lazyPage(['settings.manage', 'workflows.manage'], () => import('@/features/settings/pages/SettingsPage').then((x) => x.SettingsPage)) },
+      { path: 'users', ...lazyPage(['users.manage', 'roles.manage'], () => import('@/features/users/pages/UsersPage').then((x) => x.UsersPage)) },
+      { path: 'accounting', ...lazyPage(['accounting.view'], () => import('@/features/accounting/pages/AccountingPage').then((x) => x.AccountingPage)) },
+      { path: 'reports', ...lazyPage(['reports.view'], () => import('@/features/reports/pages/ReportsPage').then((x) => x.ReportsPage)) },
+      { path: 'audit', ...lazyPage(['audit.view'], () => import('@/features/audit/AuditPage').then((x) => x.AuditPage)) },
+      { path: 'account', ...lazyPage([], () => import('@/features/account/AccountPage').then((m) => m.AccountPage)) },
+      { path: 'shipments', ...lazyPage(['clearance_files.view'], () => import('@/features/office-lists/pages/ShipmentsPage').then((x) => x.ShipmentsPage)) },
+      { path: 'documents', ...lazyPage(['documents.view'], () => import('@/features/office-lists/pages/DocumentsPage').then((x) => x.DocumentsPage)) },
+      { path: 'expenses', ...lazyPage(['expenses.view'], () => import('@/features/office-lists/pages/ExpensesPage').then((x) => x.ExpensesPage)) },
+      { path: 'invoices', ...lazyPage(['invoices.view'], () => import('@/features/finance/pages/InvoicesPage').then((x) => x.InvoicesPage)) },
+      { path: 'payments', ...lazyPage(['payments.view'], () => import('@/features/finance/pages/PaymentsPage').then((x) => x.PaymentsPage)) },
       ...comingSoon,
       { path: '*', element: <Message k="common.notFound" /> },
     ],
