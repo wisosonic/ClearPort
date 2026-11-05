@@ -7,6 +7,7 @@ import { AuditService } from '../audit/audit.service';
 import type { AuthContext, RequestMeta } from '../auth/auth.types';
 import { ActivityService } from '../clearance-files/activity.service';
 import { FilesService } from '../clearance-files/files.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { RequirementsService } from '../documents/requirements.service';
 import type { closeSchema, TransitionInput } from './workflow.schemas';
 
@@ -40,6 +41,7 @@ export class TransitionsService {
     @Inject(RequirementsService) private readonly requirements: RequirementsService,
     @Inject(ActivityService) private readonly activity: ActivityService,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   // ───────────────────────────── what can I do next? ─────────────────────────────
@@ -103,11 +105,9 @@ export class TransitionsService {
         `Stage changed from ${from.nameEn} to ${to.nameEn}${input.reason ? ` — ${input.reason}` : ''}`,
         { fromStageId: from.id, toStageId: to.id, from: from.code, to: to.code, reason: input.reason ?? null }, tx);
       if (file.assignedTo && file.assignedTo !== auth.userId) {
-        await tx.notification.create({
-          data: {
-            userId: file.assignedTo, type: 'FILE_STAGE_CHANGED', title: `File ${file.fileNumber} moved to ${to.nameEn}`,
-            metadata: { clearanceFileId: fileId, fileNumber: file.fileNumber, toStage: to.code },
-          } as any,
+        await this.notifications.create(tx, {
+          userId: file.assignedTo, type: 'FILE_STAGE_CHANGED', title: `File ${file.fileNumber} moved to ${to.nameEn}`,
+          metadata: { clearanceFileId: fileId, fileNumber: file.fileNumber, toStage: to.code },
         });
       }
     });

@@ -733,6 +733,7 @@
   "settings": {
     "title": "Settings",
     "tabs": {
+      "general": "General",
       "office": "Office",
       "branches": "Branches",
       "tax": "Tax",
@@ -991,5 +992,65 @@
     "invoiced": "Invoiced",
     "received": "Payments received",
     "refunded": "Refunded"
+  },
+  "general": {
+    "appearance": {
+      "title": "Appearance",
+      "intro": "How the app looks for you, on this device.",
+      "theme": "Theme",
+      "themes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "Match my device"
+      },
+      "fontSize": "Text size",
+      "sizes": {
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large"
+      },
+      "sample": "This is how text will look. Clearance file IMP-2026-00001 — Al Nour Trading — 1,250.00 USD.",
+      "useDark": "Switch to dark mode",
+      "useLight": "Switch to light mode"
+    },
+    "currency": {
+      "title": "Currency",
+      "intro": "The main currency every amount in the office is valued in, and the exchange rate to other currencies.",
+      "main": "Main currency",
+      "mainHint": "Reports, balances and the books are all kept in this currency. It can be changed only before anything is recorded in it.",
+      "locked": "The main currency is fixed because the office already has:",
+      "blockers": {
+        "JOURNAL_ENTRIES": "journal entries",
+        "INVOICES": "invoices",
+        "PAYMENTS": "payments",
+        "EXPENSES": "expenses",
+        "EXCHANGE_RATES": "exchange rates"
+      },
+      "rateTitle": "Exchange rate: {{base}} to {{other}}",
+      "currentRate": "Current rate: 1 {{from}} = {{amount}} {{to}}",
+      "noRate": "No {{other}} rate is on file yet.",
+      "newRate": "New rate",
+      "recordRate": "Record rate",
+      "rateSaved": "Rate recorded. New transactions use it from now on.",
+      "rateReadOnly": "Recording rates needs the accounting permission."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "intro": "Which kinds of notification the office sends.",
+      "inApp": "In-app notifications",
+      "inAppHint": "The bell at the top: file assignments, stage changes and task reminders.",
+      "email": "Email",
+      "emailHint": "Saved as the office's choice. No email service is connected yet, so nothing is sent for now.",
+      "sms": "SMS",
+      "smsHint": "Saved as the office's choice. No SMS service is connected yet, so nothing is sent for now.",
+      "readOnly": "Only someone who manages office settings can change these."
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bell": "Notifications",
+    "bellUnread": "Notifications ({{count}} unread)",
+    "none": "No notifications.",
+    "markAll": "Mark all read"
   }
 }

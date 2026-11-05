@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { Languages, LogOut, Menu, UserRound, X } from 'lucide-react';
+import { Languages, LogOut, Menu, Moon, Sun, UserRound, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { setLocale } from '@/i18n';
+import { isDark, setTheme, useTheme } from '@/lib/appearance';
+import { NotificationsBell } from './NotificationsBell';
 import { cn } from '@/lib/cn';
 import type { Locale } from '@/lib/format';
 import { canAny } from '@/lib/permissions';
@@ -15,6 +17,8 @@ export function DashboardLayout() {
   const { me, permissions, logout, switchOffice } = useAuth();
   const [open, setOpen] = useState(false);
   const locale = i18n.language as Locale;
+  useTheme(); // re-render when the theme changes
+  const dark = isDark();
 
   const sidebar = (
     <nav aria-label="main" className="flex h-full flex-col gap-6 overflow-y-auto p-4">
@@ -63,11 +67,18 @@ export function DashboardLayout() {
               </Select>
             ) : me?.tenant.name}
           </div>
+          <NotificationsBell />
+          <button
+            className="flex items-center rounded px-2 py-1.5 text-slate-600 hover:bg-slate-100" aria-label={dark ? t('general.appearance.useLight') : t('general.appearance.useDark')}
+            onClick={() => setTheme(dark ? 'light' : 'dark')}
+          >
+            {dark ? <Sun className="size-4" aria-hidden /> : <Moon className="size-4" aria-hidden />}
+          </button>
           <button
             className="flex items-center gap-1 rounded px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
             onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} aria-label={t('common.language')}
           >
-            <Languages className="size-4" aria-hidden />{locale === 'ar' ? 'English' : 'العربية'}
+            <Languages className="size-4" aria-hidden /><span className="hidden sm:inline">{locale === 'ar' ? 'English' : 'العربية'}</span>
           </button>
           <Link to="/account" className="flex items-center gap-1 rounded px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100" aria-label={t('account.title')}><UserRound className="size-4" aria-hidden /><span className="hidden sm:inline">{me?.user.firstName} {me?.user.lastName}</span></Link>
           <button className="flex items-center gap-1 rounded px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100" onClick={() => void logout()}>

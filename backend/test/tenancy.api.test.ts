@@ -132,12 +132,13 @@ describe('multi-tenant isolation and RBAC (API)', () => {
       expect((await api.req('get', '/tenant', v)).status).toBe(200);
     });
 
-    it('lets the owner edit office settings but never the base currency', async () => {
+    it('lets the owner edit office settings; the main currency only while nothing has been booked in it', async () => {
       const ok = await api.req('patch', '/tenant', A).send({ phone: '+961 1 000000', locale: 'ar' });
       expect(ok.status).toBe(200);
       expect(ok.body.data.locale).toBe('ar');
-      const cur = await api.req('patch', '/tenant', A).send({ defaultCurrency: 'LBP' });
-      expect(cur.status).toBe(400); // .strict(): unknown field
+      expect((await api.req('patch', '/tenant', A).send({ defaultCurrency: 'XXXX' })).status).toBe(400); // not a currency code
+      expect((await api.req('patch', '/tenant', A).send({ defaultCurrency: 'ZZZ' })).body.error.code).toBe('CURRENCY_NOT_FOUND');
+      expect((await api.req('patch', '/tenant', A).send({ colour: 'blue' })).status).toBe(400); // .strict(): unknown field
       expect((await api.req('patch', '/tenant', A).send({ timezone: 'Mars/Olympus' })).status).toBe(400); // not a real time zone
       expect((await api.req('patch', '/tenant', A).send({ timezone: 'Europe/Paris' })).status).toBe(200);
       await api.req('patch', '/tenant', A).send({ timezone: 'Asia/Beirut' });

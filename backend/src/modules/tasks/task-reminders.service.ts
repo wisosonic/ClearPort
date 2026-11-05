@@ -1,3 +1,4 @@
+import { NotificationsService } from '../notifications/notifications.service';
 import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import { ENV, type Env } from '../../config/env';
 import { TenantDbService } from '../../database/prisma.module';
@@ -18,6 +19,7 @@ export class TaskRemindersService implements OnModuleInit {
     @Inject(JobQueueService) private readonly queue: JobQueueService,
     @Inject(TenantDbService) private readonly db: TenantDbService,
     @Inject(ENV) private readonly env: Env,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   onModuleInit() {
@@ -55,12 +57,10 @@ export class TaskRemindersService implements OnModuleInit {
       const existing = await this.db.client.notification.findMany({ where: { userId: m.userId, type }, select: { metadata: true }, orderBy: { createdAt: 'desc' }, take: 500 });
       if (existing.some((n) => (n.metadata as any)?.taskId === taskId && (n.metadata as any)?.dueAt === dueAt)) continue; // already told (a retry or duplicate job)
       const where = task.clearanceFile ? ` (${task.clearanceFile.fileNumber})` : '';
-      await this.db.client.notification.create({
-        data: {
-          userId: m.userId, type,
-          title: type === 'TASK_DUE_SOON' ? `Task due soon: ${task.title}${where}` : `Task overdue: ${task.title}${where}`,
-          body: null, metadata: { taskId, dueAt, clearanceFileId: task.clearanceFileId, assignedTo: task.assignedTo },
-        } as any,
+      await this.notifications.create(this.db.client, {
+        userId: m.userId, type,
+        title: type === 'TASK_DUE_SOON' ? `Task due soon: ${task.title}${where}` : `Task overdue: ${task.title}${where}`,
+        metadata: { taskId, dueAt, clearanceFileId: task.clearanceFileId, assignedTo: task.assignedTo },
       });
     }
   }

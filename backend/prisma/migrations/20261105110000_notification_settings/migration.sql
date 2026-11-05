@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "tenants" ADD COLUMN "notifyInApp" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "tenants" ADD COLUMN "notifyEmail" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "tenants" ADD COLUMN "notifySms" BOOLEAN NOT NULL DEFAULT false;

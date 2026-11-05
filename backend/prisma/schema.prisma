@@ -197,6 +197,10 @@ model Tenant {
   locale          String       @default("en")
   /// false = whoever records an expense cannot also approve it
   allowSelfApproval Boolean    @default(true)
+  /// notification channels the office has switched on (email and SMS record the choice; no delivery service is connected yet)
+  notifyInApp Boolean @default(true)
+  notifyEmail Boolean @default(false)
+  notifySms Boolean @default(false)
   status          TenantStatus @default(ACTIVE)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt

@@ -2,7 +2,7 @@
 
 Modular monolith: NestJS 11 + Prisma 7 + SQLite. REST under `/api/v1`. See
 [database.md](database.md) for the schema and [frontend.md](frontend.md) for the web app.
-The backend covers Phases 1–6 (535 tests); the frontend foundation is in place.
+The backend covers Phases 1–6 (541 tests); the frontend foundation is in place.
 
 ## Request pipeline
 
@@ -361,8 +361,20 @@ defaults (workflows, document requirements, categories, chart of accounts, cashb
 * Return `paginated(items, query, total)` for lists; use `orderBy()` with an allow-list for sorting.
 * Cross-tenant tests (`test/tenancy.api.test.ts`) must be extended for every new resource.
 
+## Notifications and office switches
+
+* **In-app notifications** are rows in `notifications`, created when a file or task is assigned to someone, a file changes stage, and when a task is
+  due soon or overdue. Every one goes through `NotificationsService.create`, which honours the office switch `notifyInApp`.
+  `GET /notifications` (the caller's own; `meta.unreadCount`), `POST /notifications/:id/read` and `POST /notifications/read-all` need only a signed-in
+  session and can never reach another person's notifications. The web app shows them under the bell in the header.
+* **Channels:** `notifyInApp` (default on), `notifyEmail` and `notifySms` (default off) are office settings (`PATCH /tenant`, `settings.manage`).
+  Email and SMS record the office's choice only: **no email or SMS service is connected**, so nothing is sent through them yet.
+* **Main currency:** `PATCH /tenant { defaultCurrency }` works only while the office has no journal entries, invoices (drafts included), payments,
+  expenses or exchange rates (`422 BASE_CURRENCY_IN_USE`); `GET /tenant/currency-change` says whether it can still change and what is in the way.
+
 ## Known gaps
 
 * Anti-virus is only as good as the ClamAV daemon an office connects; without one, only the EICAR test file is caught.
 * Revaluation is run by a person at period end (`POST /accounting/revaluation`), not on a schedule.
 * HS codes are not seeded (no verified Lebanese tariff source).
+* Email and SMS are not delivered (see Notifications): the switches only record the office's choice.

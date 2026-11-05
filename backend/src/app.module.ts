@@ -19,6 +19,8 @@ import { ShipmentsService } from './modules/clearance-files/shipments.service';
 import { ClientsController } from './modules/clients/clients.controller';
 import { ClientsService } from './modules/clients/clients.service';
 import { PartiesController } from './modules/clients/parties.controller';
+import { NotificationsController } from './modules/notifications/notifications.controller';
+import { NotificationsService } from './modules/notifications/notifications.service';
 import { LocalStorageService } from './infrastructure/storage/local-storage.service';
 import { MalwareScanner } from './infrastructure/storage/malware-scanner';
 import { UploadInterceptor } from './infrastructure/storage/upload.interceptor';
@@ -82,10 +84,10 @@ export class ConfigModule {
     HealthController, AuthController, TenantsController, BranchesController, UsersController, RolesController,
     ClientsController, PartiesController, FilesController, ShipmentsController, ReferenceController, DocumentsController,
     WorkflowAdminController, TransitionsController, TasksController,
-    FinanceSetupController, AccountingController, ExpensesController, InvoicesController, PaymentsController, ReportsController, ReportsOpsController, PrintController, AuditController,
+    FinanceSetupController, AccountingController, ExpensesController, InvoicesController, PaymentsController, ReportsController, ReportsOpsController, PrintController, AuditController, NotificationsController,
   ],
   providers: [
-    AuditService, TokenService, AuthService, UsersService, ProvisioningService, ClientsService,
+    AuditService, NotificationsService, TokenService, AuthService, UsersService, ProvisioningService, ClientsService,
     FilesService, ShipmentsService, ActivityService,
     LocalStorageService, MalwareScanner, UploadInterceptor, DocumentsService, RequirementsService,
     WorkflowAdminService, TransitionsService, TasksService,

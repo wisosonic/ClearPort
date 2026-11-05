@@ -14,3 +14,28 @@ html { background: var(--bg); color: var(--text); }
 body { margin: 0; font-family: var(--font-sans); }
 /* Directional icons (chevrons, arrows) flip in right-to-left. */
 [dir="rtl"] .rtl-flip { transform: scaleX(-1); }
+
+/* ───────── Font size (Settings → General → Appearance). Everything is sized in rem, so this scales the whole app. ───────── */
+html[data-font-size="small"] { font-size: 14px; }
+html[data-font-size="large"] { font-size: 18px; }
+
+/* ───────── Dark mode ─────────
+   The screens use Tailwind's slate / red / green / amber / blue scales. Instead of repeating a dark variant on every class,
+   the dark theme re-points those colour variables: the slate scale is reversed (so text-slate-900 becomes light and
+   bg-slate-50 becomes dark), and the tone colours are re-tinted. `white` stays white for text on coloured buttons; white
+   surfaces are handled by the .bg-white rule below. */
+html.dark {
+  color-scheme: dark;
+  --bg: #0b1220; --surface: #111a2e; --text: #e2e8f0; --muted: #94a3b8; --border: #26344d;
+  --color-slate-50: #0f172a; --color-slate-100: #1a2540; --color-slate-200: #2a3855; --color-slate-300: #3b4b6b; --color-slate-400: #6b7a96;
+  --color-slate-500: #94a3b8; --color-slate-600: #b6c2d4; --color-slate-700: #cbd5e1; --color-slate-800: #e2e8f0; --color-slate-900: #f1f5f9; --color-slate-950: #ffffff;
+  --color-red-50: #3a161c; --color-red-100: #4a1c24; --color-red-200: #7f1d1d; --color-red-600: #f87171; --color-red-700: #fca5a5; --color-red-800: #fecaca;
+  --color-green-50: #10291d; --color-green-100: #14351f; --color-green-200: #166534; --color-green-700: #86efac; --color-green-800: #bbf7d0;
+  --color-amber-50: #352610; --color-amber-100: #44310f; --color-amber-200: #92400e; --color-amber-700: #fcd34d; --color-amber-800: #fde68a; --color-amber-900: #fef3c7;
+  --color-blue-50: #0f2347; --color-blue-100: #172e5c; --color-blue-200: #1e40af; --color-blue-800: #bfdbfe; --color-blue-900: #dbeafe;
+}
+html.dark .bg-white { background-color: var(--surface); }
+html.dark .text-brand-700 { color: #93c5fd; }
+html.dark .bg-brand-50 { background-color: #172e5c; }
+html.dark .bg-slate-900\/40 { background-color: rgb(0 0 0 / 0.6); }
+html.dark input::placeholder, html.dark textarea::placeholder { color: #6b7a96; }

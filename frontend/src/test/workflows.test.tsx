@@ -56,9 +56,11 @@ beforeEach(() => {
   }));
 });
 
-const open = async () => {
+const open = async (tab: string | null = 'Workflows') => {
   render(<App router={createTestRouter('/settings') as any} client={new QueryClient({ defaultOptions: { queries: { retry: false } } })} />);
-  return userEvent.setup();
+  const user = userEvent.setup();
+  if (tab) await user.click(await screen.findByRole('tab', { name: tab })); // General comes first
+  return user;
 };
 const sent = (method: string, path: string) => calls.filter((c) => c.method === method && c.path === path);
 const edit = async (user: ReturnType<typeof userEvent.setup>, name = 'Standard import') => user.click(await screen.findByRole('button', { name: `Edit stages and rules ${name}` }));
@@ -67,13 +69,13 @@ describe('workflow list', () => {
   it('is reachable with only workflows.manage, and shows only the tabs that permission covers', async () => {
     await open();
     expect(await screen.findByText('Standard import')).toBeInTheDocument();
-    expect(screen.getAllByRole('tab').map((x) => x.textContent)).toEqual(['Workflows', 'Required documents']);
+    expect(screen.getAllByRole('tab').map((x) => x.textContent)).toEqual(['General', 'Workflows', 'Required documents']);
     expect(screen.queryByRole('tab', { name: 'Office' })).not.toBeInTheDocument();
   });
 
   it('shows the Office tabs too with both permissions', async () => {
     permissions = ['settings.manage', 'workflows.manage', 'clearance_files.view'];
-    await open();
+    await open(null);
     expect(await screen.findByRole('tab', { name: 'Office' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Workflows' })).toBeInTheDocument();
   });
@@ -90,7 +92,7 @@ describe('workflow list', () => {
 
   it('is refused without settings.manage or workflows.manage', async () => {
     permissions = ['clearance_files.view'];
-    await open();
+    await open(null);
     expect(await screen.findByText('You do not have access to this page.')).toBeInTheDocument();
   });
 });
@@ -284,8 +286,8 @@ describe('transitions', () => {
 describe('Arabic', () => {
   it('shows the tab and rules in Arabic', async () => {
     setLocale('ar');
-    const user = await open();
-    expect(await screen.findByRole('tab', { name: 'مسارات العمل' })).toBeInTheDocument();
+    const user = await open(null);
+    await user.click(await screen.findByRole('tab', { name: 'مسارات العمل' }));
     await user.click(await screen.findByRole('button', { name: 'تعديل المراحل والقواعد Standard import' }));
     expect(await screen.findByText('اكتمال المستندات')).toBeInTheDocument();
   });

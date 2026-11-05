@@ -292,3 +292,17 @@ Every screen except the dashboard and login is loaded on first visit (route-leve
 * **Payments:** the method list comes from `GET /payment-methods`; an advance can name the open advance invoice it answers (same client and currency).
 * **Required documents:** a requirement can be limited to some files (shipment by sea/air/land/other, with or without containers, priority, company or
   individual client); leaving everything empty asks for it on every file of the type. The file's checklist only lists the requirements that apply to it.
+
+## Settings → General, dark mode and notifications
+
+* **General** is the first Settings tab and has three sections:
+  * **Appearance** (per person, per device, kept in the browser): theme *Light / Dark / Match my device* and text size *Small / Medium / Large*. A sun/moon
+    button in the header toggles the theme too. Text is sized in `rem`, so the size setting scales the whole app. Dark mode re-points the colour variables the
+    screens already use (the slate scale is reversed, the red/green/amber/blue tints are darkened) in `styles/index.css`, so no screen needs its own dark classes;
+    `lib/appearance.ts` applies the choice, and a small script in `index.html` applies it before the app loads to avoid a light flash.
+  * **Currency:** the main currency (changeable only in an office with nothing recorded; otherwise the page lists what is in the way) and the exchange
+    rate between it and another currency, shown as "1 USD = 90,000 LBP". Recording a rate (`accounting.post`) always sends `FOREIGN_PER_BASE`, which is
+    exactly "1 main = rate other".
+  * **Notifications:** switches for in-app, email and SMS, saved when flipped (`settings.manage`). The page says plainly that email and SMS are not connected.
+* **The bell** in the header shows the unread count and the latest notifications; clicking one marks it read and opens its file. It checks every minute.
+* `Switch` and `PasswordInput` are shared primitives (`components/ui/primitives.tsx`).

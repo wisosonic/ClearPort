@@ -11,6 +11,7 @@ import { PrismaService, TenantDbService } from '../../database/prisma.module';
 import { requireTenant } from '../../database/tenant-context';
 import { AuditService } from '../audit/audit.service';
 import type { AuthContext, RequestMeta } from '../auth/auth.types';
+import { NotificationsService } from '../notifications/notifications.service';
 import { ActivityService } from './activity.service';
 import type { CreateFileInput, FileListQuery, UpdateFileInput, timelineQuerySchema } from './files.schemas';
 
@@ -35,6 +36,7 @@ export class FilesService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(ActivityService) private readonly activity: ActivityService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   // ───────────────────────────── listing and search ─────────────────────────────
@@ -282,11 +284,9 @@ export class FilesService {
       : `Unassigned (was ${from ? names.get(from) ?? 'someone' : 'nobody'})`;
     await this.activity.log(file.id, auth.userId, 'EMPLOYEE_ASSIGNED', description, { from, to }, tx);
     if (to && to !== auth.userId) {
-      await tx.notification.create({
-        data: {
-          userId: to, type: 'FILE_ASSIGNED', title: `File ${file.fileNumber} assigned to you`,
-          body: null, metadata: { clearanceFileId: file.id, fileNumber: file.fileNumber },
-        },
+      await this.notifications.create(tx, {
+        userId: to, type: 'FILE_ASSIGNED', title: `File ${file.fileNumber} assigned to you`,
+        metadata: { clearanceFileId: file.id, fileNumber: file.fileNumber },
       });
     }
   }

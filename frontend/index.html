@@ -6,6 +6,14 @@
     <title>ClearPort</title>
   </head>
   <body>
+    <script>
+      // Apply the saved theme and font size before the app loads, so the page does not flash light first.
+      try {
+        var t = localStorage.getItem('clearport.theme'), s = localStorage.getItem('clearport.fontSize'), r = document.documentElement;
+        if (t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) r.classList.add('dark');
+        if (s === 'small' || s === 'large') r.dataset.fontSize = s;
+      } catch (e) {}
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

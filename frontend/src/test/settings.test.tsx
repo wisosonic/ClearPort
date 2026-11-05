@@ -66,7 +66,7 @@ const sent = (method: string, path: string) => calls.filter((c) => c.method === 
 
 describe('office', () => {
   it('shows the office, with the base currency fixed', async () => {
-    await open();
+    await open('Office');
     expect(await screen.findByLabelText('Office name')).toHaveValue('Demo Office');
     expect(screen.getByLabelText('Email')).toHaveValue('info@demo.test');
     expect(screen.getByText('Base currency')).toBeInTheDocument();
@@ -75,7 +75,7 @@ describe('office', () => {
   });
 
   it('validates, then saves and reloads the signed-in office', async () => {
-    const user = await open();
+    const user = await open('Office');
     const name = await screen.findByLabelText('Office name');
     await user.clear(name);
     await user.type(name, 'D');
@@ -101,7 +101,7 @@ describe('office', () => {
   });
 
   it('can require that someone else approves expenses', async () => {
-    const user = await open();
+    const user = await open('Office');
     await user.click(await screen.findByLabelText(/Someone else must approve an expense/));
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(sent('PATCH', '/tenant')).toHaveLength(1));
@@ -110,7 +110,7 @@ describe('office', () => {
 
   it('shows the server message when saving is refused', async () => {
     failNext['PATCH /tenant'] = fail(403, 'PERMISSION_DENIED', 'You do not have permission to do that');
-    const user = await open();
+    const user = await open('Office');
     await screen.findByLabelText('Office name');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByText('You do not have permission to do that')).toBeInTheDocument();
@@ -252,6 +252,8 @@ describe('Arabic', () => {
     render(<App router={createTestRouter('/settings') as any} client={new QueryClient({ defaultOptions: { queries: { retry: false } } })} />);
     expect(await screen.findByRole('heading', { name: 'الإعدادات' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'الفئات المالية' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'عام' })).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole('tab', { name: 'المكتب' }));
     expect(await screen.findByLabelText('اسم المكتب')).toHaveValue('Demo Office');
   });
 });

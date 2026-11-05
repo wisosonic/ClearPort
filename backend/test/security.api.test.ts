@@ -91,9 +91,10 @@ describe('security review', () => {
         'GET /api/v1/auth/me', 'GET /api/v1/branches', 'GET /api/v1/currencies', 'GET /api/v1/exchange-rates',
         'GET /api/v1/exchange-rates/latest', 'GET /api/v1/financial-categories', 'GET /api/v1/payment-methods', 'GET /api/v1/settings/tax', 'GET /api/v1/tenant', 'POST /api/v1/auth/logout',
         'POST /api/v1/auth/change-password', 'POST /api/v1/auth/switch-tenant',
+        'GET /api/v1/notifications', 'POST /api/v1/notifications/read-all', 'POST /api/v1/notifications/:id/read', // a person's own notifications
       ].sort());
       // every non-GET route that any member can call is part of the caller's own session/account
-      expect(routes.filter((r) => r.kind === 'authenticated' && r.method !== 'GET').every((r) => r.path.startsWith('/api/v1/auth/'))).toBe(true);
+      expect(routes.filter((r) => r.kind === 'authenticated' && r.method !== 'GET').every((r) => r.path.startsWith('/api/v1/auth/') || r.path.startsWith('/api/v1/notifications'))).toBe(true);
     });
 
     it('only asks for permissions that exist', () => {
@@ -103,7 +104,7 @@ describe('security review', () => {
     });
 
     it('guards every state-changing route with a permission (never just "signed in") outside the own-account routes', () => {
-      const weak = routes.filter((r) => r.method !== 'GET' && r.kind !== 'permissions' && !r.path.startsWith('/api/v1/auth/') && r.kind !== 'public');
+      const weak = routes.filter((r) => r.method !== 'GET' && r.kind !== 'permissions' && !r.path.startsWith('/api/v1/auth/') && !r.path.startsWith('/api/v1/notifications') && r.kind !== 'public');
       expect(weak.map(label)).toEqual([]);
     });
   });

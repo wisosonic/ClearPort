@@ -8,6 +8,7 @@ import { AuditService } from '../audit/audit.service';
 import type { AuthContext, RequestMeta } from '../auth/auth.types';
 import { ActivityService } from '../clearance-files/activity.service';
 import { FilesService } from '../clearance-files/files.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { TaskRemindersService } from './task-reminders.service';
 import type { CreateTaskInput, TaskListQuery, UpdateTaskInput } from './tasks.schemas';
 
@@ -45,6 +46,7 @@ export class TasksService {
     @Inject(ActivityService) private readonly activity: ActivityService,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(TaskRemindersService) private readonly reminders: TaskRemindersService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   // ───────────────────────────── read ─────────────────────────────
@@ -229,11 +231,9 @@ export class TasksService {
 
   private async notifyAssignee(tx: any, task: { id: string; title: string; assignedTo: string; clearanceFileId: string | null }, auth: AuthContext) {
     if (task.assignedTo === auth.userId) return;
-    await tx.notification.create({
-      data: {
-        userId: task.assignedTo, type: 'TASK_ASSIGNED', title: `New task: ${task.title}`,
-        metadata: { taskId: task.id, clearanceFileId: task.clearanceFileId },
-      },
+    await this.notifications.create(tx, {
+      userId: task.assignedTo, type: 'TASK_ASSIGNED', title: `New task: ${task.title}`,
+      metadata: { taskId: task.id, clearanceFileId: task.clearanceFileId },
     });
   }
 }
