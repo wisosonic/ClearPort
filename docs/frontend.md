@@ -70,7 +70,7 @@ Amounts are shown per currency (e.g. `1,000.00 USD · 89,500,000 LBP`), never su
 | `/clients` Clients | list with search and paging; **New client** for `clients.manage` |
 | `/clients/new`, `/clients/:id` | create form; client page with tabs Details (edit, deactivate), Contacts, Files, Account |
 | `/invoices`, `/payments` | every invoice / payment in the office with filters (status, type, unpaid/overdue, unapplied, dates, search); rows link to the client and the file, where changes are made |
-| `/reports` Reports | one page for clearance files, client balances, expenses, revenue and employee performance; filters, totals, export |
+| `/reports` Reports | one page for clearance files, client balances, expenses, revenue, employee performance, file profitability and the financial summary; filters, totals, export |
 | `/accounting` Accounting | tabs Journal (filters, lines, manual entries, reversal), Trial balance, Chart of accounts, Cash and bank, Exchange rates |
 | `/users` Users and roles | tabs Users (add, edit, deactivate) and Roles (built-in and custom, permissions) |
 | `/settings` Settings | tabs Office, Branches, Tax, Financial categories, Document types (need `settings.manage`) and Workflows, Required documents (need `workflows.manage`); each tab shows only to those who hold its permission |
@@ -186,7 +186,12 @@ with the permissions it needs (the same ones the API checks) and the filters it 
   expense amounts) show it. Currencies are never added together: client balances show **totals per currency** underneath.
 * **Export** (needs `reports.export`): Excel, CSV or PDF of the current report with the same filters, in the interface language; the API audits every export and re-checks the
   permissions of the report being exported.
-* Profitability and the financial summary are available from the API and the export, but have no table on this page yet; the trial balance is planned for the accounting screen.
+* **File profitability** is a table of files (revenue, office costs, profit, margin, unrecovered pass-through money, exchange differences) in the base currency; the totals
+  cover every matching file, not just the page. The **financial summary** is a position block (as of the end date), a results block (inside the period) and document totals
+  per currency. Both export like the others.
+* The same figures for one file are on the file page, in the **Costs and profit** tab (needs `reports.view`): profit, pass-through money kept apart from it, invoicing per
+  currency and expenses paid out but not yet on an invoice.
+* The trial balance lives on the accounting screen.
 
 ### Accounting (`features/accounting/`)
 

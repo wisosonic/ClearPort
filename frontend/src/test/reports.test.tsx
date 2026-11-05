@@ -49,6 +49,13 @@ const TABLES: Record<string, { rows: unknown[]; meta: Record<string, unknown> }>
     meta: { title: { en: 'Employee performance', ar: 'أداء الموظفين' }, baseCurrency: 'USD', totals: null, columns: [text('Employee', 'الموظف', 'employee'), text('Open files', 'ملفات مفتوحة', 'filesAssignedOpen', 'int')] },
   },
 };
+const PROFIT = [{ id: 'f1', fileNumber: 'IMP-2026-00001', fileType: 'IMPORT', status: 'OPEN', client: { id: 'c1', name: 'Al Nour' }, serviceRevenue: '500.0000', officeCosts: '120.0000', profit: '380.0000', marginPercent: '76.00', unrecoveredDisbursements: '80.0000', fxGainLoss: '0.0000' }];
+const SUMMARY = {
+  baseCurrency: 'USD', basis: 'BASE_CURRENCY', from: null, to: null,
+  position: { receivables: '1500.0000', clientAdvancesHeld: '300.0000', unrecoveredDisbursements: '80.0000', payables: '0.0000', taxesPayable: '0.0000', cashAndBankBase: '9000.0000', cashAccounts: [] },
+  results: { serviceRevenue: '500.0000', officeExpenses: '120.0000', operatingResult: '380.0000', fxGainLoss: '0.0000' },
+  transactionCurrency: { invoiced: { USD: '1000.0000', LBP: '89500000.0000' }, received: { USD: '400.0000' }, refunded: {} },
+};
 const ALL = ['reports.view', 'reports.export', 'clearance_files.view', 'invoices.view', 'payments.view', 'expenses.view', 'users.manage'];
 let permissions: string[];
 let calls: { path: string; query: URLSearchParams }[];
@@ -72,6 +79,8 @@ beforeEach(() => {
       if (exportFail) return res(403, { success: false, error: { code: 'PERMISSION_DENIED', message: 'You do not have permission to export this report', details: [] } });
       return new Response(new Blob(['xlsx-bytes']), { status: 200, headers: { 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment; filename="revenue-20261104.xlsx"' } });
     }
+    if (path === '/reports/profitability') return ok(PROFIT, { page: 1, limit: 20, total: 1, baseCurrency: 'USD', totals: { files: 1, serviceRevenue: '500.0000', officeCosts: '120.0000', profit: '380.0000', marginPercent: '76.00', unrecoveredDisbursements: '80.0000', fxGainLoss: '0.0000' } });
+    if (path === '/reports/financial-summary') return ok(SUMMARY);
     const t = TABLES[path.replace('/reports/', '')];
     if (t) return ok(t.rows, { page: 1, limit: 20, total: t.rows.length, report: path, ...t.meta });
     return res(404, { success: false, error: { code: 'NOT_FOUND', message: 'no route', details: [] } });
@@ -96,7 +105,7 @@ describe('reports page', () => {
     permissions = ['reports.view', 'expenses.view'];
     mount();
     const pick = await screen.findByLabelText('Report');
-    expect(within(pick).getAllByRole('option').map((o) => o.textContent)).toEqual(['Expenses', 'Revenue']);
+    expect(within(pick).getAllByRole('option').map((o) => o.textContent)).toEqual(['Expenses', 'Revenue', 'File profitability', 'Financial summary']);
   });
 
   it('is refused without reports.view', async () => {
@@ -150,6 +159,33 @@ describe('reports page', () => {
     await user.selectOptions(screen.getByLabelText('Report'), 'revenue');
     await screen.findByText('2026-11');
     expect(screen.queryByLabelText('Search')).not.toBeInTheDocument();
+  });
+});
+
+describe('profitability and financial summary', () => {
+  it('lists each file with its profit and margin, in the base currency, with report-wide totals', async () => {
+    mount();
+    const user = userEvent.setup();
+    await user.selectOptions(await screen.findByLabelText('Report'), 'profitability');
+    const row = (await screen.findByText('IMP-2026-00001')).closest('tr')!;
+    expect(within(row).getByText('Al Nour')).toBeInTheDocument();
+    expect(within(row).getByText('380.00')).toBeInTheDocument();
+    expect(within(row).getByText('76%')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Profit (USD)' })).toBeInTheDocument();
+    expect(screen.getByText('Total')).toBeInTheDocument();
+  });
+
+  it('shows the office position and results, and document totals per currency', async () => {
+    mount();
+    const user = userEvent.setup();
+    await user.selectOptions(await screen.findByLabelText('Report'), 'financial-summary');
+    expect(await screen.findByText('Cash and bank')).toBeInTheDocument();
+    expect(screen.getByText('9,000.00 USD')).toBeInTheDocument();
+    expect(screen.getByText('Operating result')).toBeInTheDocument();
+    expect(screen.getByText('1,000.00 USD · 89,500,000 LBP')).toBeInTheDocument(); // never added together
+    expect(calls.some((c) => c.path === '/reports/financial-summary')).toBe(true);
+    await user.type(screen.getByLabelText('From'), '2026-11-01');
+    await waitFor(() => expect(last('/reports/financial-summary').get('from')).toBe('2026-11-01'));
   });
 });
 

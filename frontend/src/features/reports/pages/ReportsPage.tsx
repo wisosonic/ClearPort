@@ -8,9 +8,10 @@ import { can, canAny } from '@/lib/permissions';
 import { saveBlob } from '@/lib/save-blob';
 import { useAuth } from '@/features/auth/auth';
 import { useDebounced } from '@/hooks/useDebounced';
+import { FinancialSummary } from './FinancialSummary';
 import { Alert, Button, Card, EmptyState, ErrorState, Input, Pagination, Select, Spinner, Td, Th } from '@/components/ui/primitives';
 
-type ReportKey = 'clearance-files' | 'client-balances' | 'expenses' | 'revenue' | 'employee-performance';
+type ReportKey = 'clearance-files' | 'client-balances' | 'expenses' | 'revenue' | 'employee-performance' | 'profitability' | 'financial-summary';
 interface Column { key: string; header: { en: string; ar: string }; type: 'text' | 'money' | 'int' | 'date' | 'percent' }
 interface ReportMeta extends PageMeta {
   title: { en: string; ar: string }; columns: Column[]; totals: Record<string, unknown> | null; baseCurrency?: string; note?: string;
@@ -24,6 +25,14 @@ const REPORTS: { key: ReportKey; all: string[]; search?: boolean; group?: boolea
   { key: 'expenses', all: ['reports.view', 'expenses.view'], search: true },
   { key: 'revenue', all: ['reports.view'], group: true },
   { key: 'employee-performance', all: ['reports.view', 'users.manage'] },
+  { key: 'profitability', all: ['reports.view'] },
+  { key: 'financial-summary', all: ['reports.view'] },
+];
+/** Profitability comes back as plain rows; these are its columns (amounts are in the base currency, named in each header). */
+const PROFIT_COLUMNS: { key: string; type: Column['type'] }[] = [
+  { key: 'fileNumber', type: 'text' }, { key: 'client', type: 'text' }, { key: 'status', type: 'text' }, { key: 'serviceRevenue', type: 'money' },
+  { key: 'officeCosts', type: 'money' }, { key: 'profit', type: 'money' }, { key: 'marginPercent', type: 'percent' },
+  { key: 'unrecoveredDisbursements', type: 'money' }, { key: 'fxGainLoss', type: 'money' },
 ];
 const LIMIT = 20;
 const ENUM_KEYS: Record<string, string> = { status: 'files.statuses', fileType: 'files.types', priority: 'files.priorities', paymentStatus: 'inv.payStatuses' };
@@ -52,7 +61,7 @@ export function ReportsPage() {
     queryKey: ['report', key, filters, page],
     queryFn: ({ signal }) => api.list<Record<string, unknown>>(`/reports/${key}`, { ...filters, page, limit: LIMIT }, signal),
     placeholderData: keepPreviousData,
-    enabled: available.length > 0,
+    enabled: available.length > 0 && key !== 'financial-summary',
   });
   const exportFile = useMutation({
     mutationFn: async (format: 'xlsx' | 'csv' | 'pdf') => {
@@ -61,7 +70,15 @@ export function ReportsPage() {
     },
   });
   const reset = <T,>(set: (v: T) => void) => (v: T) => { set(v); setPage(1); };
-  const meta = q.data?.meta as ReportMeta | undefined;
+  const raw = q.data?.meta as ReportMeta | undefined;
+  const rawBase = raw?.baseCurrency;
+  const meta: ReportMeta | undefined = raw && key === 'profitability'
+    ? {
+      ...raw, title: { en: t('reports.names.profitability'), ar: t('reports.names.profitability') },
+      columns: PROFIT_COLUMNS.map((c) => { const h = t(`reports.cols.${c.key}`) + (c.type === 'money' ? ` (${rawBase})` : ''); return { ...c, header: { en: h, ar: h } }; }),
+    }
+    : raw;
+  const rows = key === 'profitability' ? (q.data?.data ?? []).map((r) => ({ ...r, client: (r.client as { name?: string } | null)?.name })) : q.data?.data ?? [];
   const base = meta?.baseCurrency;
 
   const cell = (c: Column, row: Record<string, unknown>) => {
@@ -126,6 +143,7 @@ export function ReportsPage() {
         {def.onlyOpen && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={onlyOpen} onChange={(e) => reset(setOnlyOpen)(e.target.checked)} />{t('reports.onlyOpen')}</label>}
       </div>
 
+      {key === 'financial-summary' ? <FinancialSummary from={from} to={to} /> : (
       <Card className="overflow-hidden">
         {q.isPending && <Spinner />}
         {q.isError && <ErrorState error={q.error} onRetry={() => void q.refetch()} />}
@@ -133,7 +151,7 @@ export function ReportsPage() {
           <>
             <h2 className="border-b border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">{meta.title[locale]}</h2>
             {meta.note && <p className="px-5 pt-3 text-xs text-slate-500">{meta.note}</p>}
-            {q.data.data.length === 0 ? <EmptyState>{t('reports.empty')}</EmptyState> : (
+            {rows.length === 0 ? <EmptyState>{t('reports.empty')}</EmptyState> : (
               <>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -141,7 +159,7 @@ export function ReportsPage() {
                       <tr>{meta.columns.map((c) => <Th key={c.key}>{c.header[locale]}</Th>)}</tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {q.data.data.map((row, i) => (
+                      {rows.map((row, i) => (
                         <tr key={i} className="hover:bg-slate-50">
                           {meta.columns.map((c) => <Td key={c.key} dir={c.type === 'text' ? 'auto' : 'ltr'} className={c.type === 'text' ? '' : 'tabular-nums'}>{cell(c, row)}</Td>)}
                         </tr>
@@ -171,6 +189,7 @@ export function ReportsPage() {
           </>
         )}
       </Card>
+      )}
       {can(permissions, 'reports.view') && !canAny(permissions, 'reports.export') && <p className="text-xs text-slate-500">{t('reports.noExport')}</p>}
     </div>
   );

@@ -167,7 +167,8 @@
       "tasks": "المهام",
       "invoices": "الفواتير",
       "payments": "الدفعات",
-      "expenses": "المصاريف"
+      "expenses": "المصاريف",
+      "costs": "التكاليف والربح"
     },
     "summary": {
       "title": "الملخص",
@@ -556,12 +557,25 @@
       "client-balances": "أرصدة العملاء",
       "expenses": "المصاريف",
       "revenue": "الإيرادات",
-      "employee-performance": "أداء الموظفين"
+      "employee-performance": "أداء الموظفين",
+      "profitability": "ربحية الملفات",
+      "financial-summary": "الملخص المالي"
     },
     "export": {
       "xlsx": "Excel",
       "csv": "CSV",
       "pdf": "PDF"
+    },
+    "cols": {
+      "fileNumber": "الملف",
+      "client": "العميل",
+      "status": "الحالة",
+      "serviceRevenue": "إيرادات الخدمات",
+      "officeCosts": "تكاليف المكتب",
+      "profit": "الربح",
+      "marginPercent": "الهامش",
+      "unrecoveredDisbursements": "غير مستردّ",
+      "fxGainLoss": "فروقات الصرف"
     }
   },
   "acc": {
@@ -906,5 +920,45 @@
     "mandatory": "إلزامي (وإلا يُعرض كاختياري فقط)",
     "fixed": "نوع الملف ونوع المستند ثابتان؛ احذف المتطلب وأضفه من جديد لتغييرهما.",
     "removeConfirm": "إيقاف طلب {{name}}؟"
+  },
+  "costs": {
+    "profit": "الربح",
+    "serviceRevenue": "إيرادات الخدمات",
+    "officeCosts": "تكاليف المكتب",
+    "profitLine": "الربح",
+    "margin": "الهامش",
+    "profitNote": "الربح = إيرادات الخدمات ناقص تكاليف المكتب، بعملة {{currency}}. لا تدخل فيه المبالغ المدفوعة نيابةً عن العميل والدفعات المقدّمة والضريبة وفروقات الصرف.",
+    "passThrough": "المبالغ المدفوعة نيابةً عن العميل",
+    "disbursed": "المدفوع عن العميل",
+    "reBilled": "المحمّل على الفواتير الصادرة",
+    "unrecovered": "غير مستردّ بعد",
+    "tax": "الضريبة المحصّلة",
+    "fx": "فروقات الصرف",
+    "invoicing": "الفوترة ({{count}})",
+    "invoiced": "المفوتر",
+    "paid": "المدفوع",
+    "outstanding": "المتبقي",
+    "unbilled": "مدفوع ولم يُدرج بعد في فاتورة"
+  },
+  "fin": {
+    "position": "المركز المالي",
+    "positionNote": "حتى تاريخ النهاية، بعملة {{currency}}.",
+    "results": "النتائج",
+    "resultsNote": "ضمن الفترة، بعملة {{currency}}.",
+    "receivables": "الذمم المدينة",
+    "advances": "دفعات العملاء المقبوضة",
+    "unrecovered": "مصاريف غير مستردّة",
+    "payables": "الذمم الدائنة",
+    "taxes": "ضرائب مستحقة",
+    "cash": "النقد والمصارف",
+    "revenue": "إيرادات الخدمات",
+    "expenses": "مصاريف المكتب",
+    "operating": "النتيجة التشغيلية",
+    "fx": "فروقات الصرف",
+    "documents": "المستندات ضمن الفترة",
+    "documentsNote": "بعملاتها الأصلية دون جمعها معًا.",
+    "invoiced": "المفوتر",
+    "received": "الدفعات المقبوضة",
+    "refunded": "المبالغ المردودة"
   }
 }

@@ -11,6 +11,7 @@ import { AssignControl } from '../components/AssignControl';
 import { ActivityTab, StageHistoryTab } from '../components/HistoryTabs';
 import { FileTasksTab } from '../components/FileTasksTab';
 import { OverviewTab } from '../components/OverviewTab';
+import { CostsTab } from '../components/CostsTab';
 import { ExpensesTab } from '../components/expenses/ExpensesTab';
 import { PaymentsTab } from '../components/payments/PaymentsTab';
 import { InvoicesTab } from '../components/invoices/InvoicesTab';
@@ -20,7 +21,7 @@ import { StagePanel } from '../components/StagePanel';
 import { priorityTone, statusTone, type FileDetail } from '../lib';
 
 const ALL_TABS = [
-  { key: 'overview' }, { key: 'shipments' }, { key: 'documents', permission: 'documents.view' }, { key: 'tasks', permission: 'tasks.view' }, { key: 'invoices', permission: 'invoices.view' }, { key: 'payments', permission: 'payments.view' }, { key: 'expenses', permission: 'expenses.view' }, { key: 'activity' }, { key: 'stages' },
+  { key: 'overview' }, { key: 'shipments' }, { key: 'documents', permission: 'documents.view' }, { key: 'tasks', permission: 'tasks.view' }, { key: 'invoices', permission: 'invoices.view' }, { key: 'payments', permission: 'payments.view' }, { key: 'expenses', permission: 'expenses.view' }, { key: 'costs', permission: 'reports.view' }, { key: 'activity' }, { key: 'stages' },
 ] as const;
 type Tab = (typeof ALL_TABS)[number]['key'];
 
@@ -77,6 +78,7 @@ export function FileDetailPage() {
         {tab === 'invoices' && <InvoicesTab file={file} />}
         {tab === 'payments' && <PaymentsTab file={file} />}
         {tab === 'expenses' && <ExpensesTab file={file} />}
+        {tab === 'costs' && <CostsTab file={file} />}
         {tab === 'activity' && <ActivityTab fileId={file.id} />}
         {tab === 'stages' && <StageHistoryTab fileId={file.id} />}
       </div>

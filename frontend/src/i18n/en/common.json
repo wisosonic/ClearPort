@@ -163,7 +163,8 @@
       "tasks": "Tasks",
       "invoices": "Invoices",
       "payments": "Payments",
-      "expenses": "Expenses"
+      "expenses": "Expenses",
+      "costs": "Costs and profit"
     },
     "summary": {
       "title": "Summary",
@@ -548,12 +549,25 @@
       "client-balances": "Client balances",
       "expenses": "Expenses",
       "revenue": "Revenue",
-      "employee-performance": "Employee performance"
+      "employee-performance": "Employee performance",
+      "profitability": "File profitability",
+      "financial-summary": "Financial summary"
     },
     "export": {
       "xlsx": "Excel",
       "csv": "CSV",
       "pdf": "PDF"
+    },
+    "cols": {
+      "fileNumber": "File",
+      "client": "Client",
+      "status": "Status",
+      "serviceRevenue": "Service revenue",
+      "officeCosts": "Office costs",
+      "profit": "Profit",
+      "marginPercent": "Margin",
+      "unrecoveredDisbursements": "Unrecovered",
+      "fxGainLoss": "Exchange differences"
     }
   },
   "acc": {
@@ -894,5 +908,45 @@
     "mandatory": "Mandatory (otherwise it is only listed as optional)",
     "fixed": "The kind of file and the document type are fixed; remove the requirement and add it again to change them.",
     "removeConfirm": "Stop requiring {{name}}?"
+  },
+  "costs": {
+    "profit": "Profit",
+    "serviceRevenue": "Service revenue",
+    "officeCosts": "Office costs",
+    "profitLine": "Profit",
+    "margin": "Margin",
+    "profitNote": "Profit = service revenue minus office costs, in {{currency}}. Pass-through money, advances, tax and exchange differences are not part of it.",
+    "passThrough": "Pass-through money",
+    "disbursed": "Paid out for the client",
+    "reBilled": "Charged back on issued invoices",
+    "unrecovered": "Not yet recovered",
+    "tax": "Tax collected",
+    "fx": "Exchange differences",
+    "invoicing": "Invoicing ({{count}})",
+    "invoiced": "Invoiced",
+    "paid": "Paid",
+    "outstanding": "Outstanding",
+    "unbilled": "Paid out but not yet on an invoice"
+  },
+  "fin": {
+    "position": "Position",
+    "positionNote": "As of the end date, in {{currency}}.",
+    "results": "Results",
+    "resultsNote": "Within the period, in {{currency}}.",
+    "receivables": "Receivables",
+    "advances": "Client advances held",
+    "unrecovered": "Unrecovered disbursements",
+    "payables": "Payables",
+    "taxes": "Taxes payable",
+    "cash": "Cash and bank",
+    "revenue": "Service revenue",
+    "expenses": "Office expenses",
+    "operating": "Operating result",
+    "fx": "Exchange differences",
+    "documents": "Documents in the period",
+    "documentsNote": "In their own currencies, never added together.",
+    "invoiced": "Invoiced",
+    "received": "Payments received",
+    "refunded": "Refunded"
   }
 }
