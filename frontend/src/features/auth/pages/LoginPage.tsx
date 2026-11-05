@@ -8,6 +8,7 @@ import { ApiError } from '@/lib/api-client';
 import { setLocale } from '@/i18n';
 import type { Locale } from '@/lib/format';
 import { PasswordInput, Button, Card, Field, Input, Select } from '@/components/ui/primitives';
+import portScene from '@/assets/port-scene.svg';
 import { useAuth } from '../auth';
 
 const schema = z.object({ email: z.string().trim().email(), password: z.string().min(1), office: z.string().optional() });
@@ -37,13 +38,19 @@ export function LoginPage() {
   });
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 p-4">
+      {/* A container port, drawn in the background and faded out towards the top so the form stays the focus. */}
+      <div
+        aria-hidden data-testid="login-backdrop"
+        className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-bottom bg-no-repeat opacity-25 dark:opacity-20"
+        style={{ backgroundImage: `url(${portScene})`, maskImage: 'linear-gradient(to top, black 35%, transparent 90%)', WebkitMaskImage: 'linear-gradient(to top, black 35%, transparent 90%)' }}
+      />
       <div className="w-full max-w-sm space-y-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-brand-700">{t('app.name')}</h1>
           <p className="text-sm text-slate-500">{t('app.tagline')}</p>
         </div>
-        <Card className="p-6">
+        <Card className="bg-white/90 p-6 shadow-lg backdrop-blur-sm">
           <form onSubmit={onSubmit} className="space-y-4" noValidate>
             {sessionExpired && <p role="status" className="rounded bg-amber-50 p-2 text-sm text-amber-800">{t('auth.sessionExpired')}</p>}
             {error && <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-700">{error}</p>}

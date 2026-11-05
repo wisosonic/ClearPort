@@ -70,6 +70,14 @@ describe('signing in', () => {
     expect(await screen.findByText('شركة النور للتجارة')).toBeInTheDocument();
   });
 
+  it('draws the port picture behind the form as decoration only', async () => {
+    mount('/');
+    const backdrop = await screen.findByTestId('login-backdrop');
+    expect(backdrop).toHaveAttribute('aria-hidden', 'true');
+    expect(backdrop.style.backgroundImage).toContain('port-scene');
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument(); // the form is unaffected
+  });
+
   it('lets the user reveal and hide the password they typed', async () => {
     mount('/');
     const user = userEvent.setup();

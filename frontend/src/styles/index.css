@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* The `dark:` variant follows the app's own dark class (Settings → General), not only the device setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-50: #eff6ff;
   --color-brand-100: #dbeafe;
@@ -35,6 +38,7 @@ html.dark {
   --color-blue-50: #0f2347; --color-blue-100: #172e5c; --color-blue-200: #1e40af; --color-blue-800: #bfdbfe; --color-blue-900: #dbeafe;
 }
 html.dark .bg-white { background-color: var(--surface); }
+html.dark .bg-white\/90 { background-color: color-mix(in srgb, var(--surface) 90%, transparent); }
 html.dark .text-brand-700 { color: #93c5fd; }
 html.dark .bg-brand-50 { background-color: #172e5c; }
 html.dark .bg-slate-900\/40 { background-color: rgb(0 0 0 / 0.6); }

@@ -306,3 +306,5 @@ Every screen except the dashboard and login is loaded on first visit (route-leve
   * **Notifications:** switches for in-app, email and SMS, saved when flipped (`settings.manage`). The page says plainly that email and SMS are not connected.
 * **The bell** in the header shows the unread count and the latest notifications; clicking one marks it read and opens its file. It checks every minute.
 * `Switch` and `PasswordInput` are shared primitives (`components/ui/primitives.tsx`).
+
+* **Login page:** an original illustration of a container port (`src/assets/port-scene.svg`, drawn in code, no photo licences involved) sits faded behind the form, fading out towards the top. It is decorative (`aria-hidden`) and follows light/dark mode.
