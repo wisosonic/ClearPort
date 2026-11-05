@@ -94,10 +94,18 @@ describe('office', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(sent('PATCH', '/tenant')).toHaveLength(1));
     expect(sent('PATCH', '/tenant')[0].body).toEqual({
-      name: 'Demo Customs', legalName: 'Demo Office SARL', email: null, phone: null, address: 'Beirut', timezone: 'Asia/Beirut', locale: 'en',
+      name: 'Demo Customs', legalName: 'Demo Office SARL', email: null, phone: null, address: 'Beirut', timezone: 'Asia/Beirut', locale: 'en', allowSelfApproval: true,
     });
     expect(await screen.findByText('Saved.')).toBeInTheDocument();
     await waitFor(() => expect(sent('GET', '/auth/me').length).toBeGreaterThan(meCalls));
+  });
+
+  it('can require that someone else approves expenses', async () => {
+    const user = await open();
+    await user.click(await screen.findByLabelText(/Someone else must approve an expense/));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(sent('PATCH', '/tenant')).toHaveLength(1));
+    expect(sent('PATCH', '/tenant')[0].body).toMatchObject({ allowSelfApproval: false });
   });
 
   it('shows the server message when saving is refused', async () => {

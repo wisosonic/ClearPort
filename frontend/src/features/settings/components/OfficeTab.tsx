@@ -7,7 +7,7 @@ import { Alert, Button, Card, ErrorState, Field, Input, Select, Spinner, Textare
 
 interface Office {
   id: string; name: string; slug: string; legalName: string | null; email: string | null; phone: string | null; address: string | null;
-  defaultCurrency: string; timezone: string; locale: 'en' | 'ar'; status: string;
+  defaultCurrency: string; timezone: string; locale: 'en' | 'ar'; allowSelfApproval?: boolean; status: string;
 }
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const zones = (): string[] => { try { return (Intl as any).supportedValuesOf?.('timeZone') ?? []; } catch { return []; } };
@@ -22,6 +22,7 @@ function OfficeForm({ office }: { office: Office }) {
   const [address, setAddress] = useState(office.address ?? '');
   const [timezone, setTimezone] = useState(office.timezone);
   const [locale, setLocale] = useState(office.locale);
+  const [selfApproval, setSelfApproval] = useState(office.allowSelfApproval ?? true);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState(false);
   const known = zones();
@@ -34,7 +35,7 @@ function OfficeForm({ office }: { office: Office }) {
   const save = useMutation({
     mutationFn: () => api.patch('/tenant', {
       name: name.trim(), legalName: legalName.trim() || null, email: email.trim() || null, phone: phone.trim() || null, address: address.trim() || null,
-      timezone: timezone.trim(), locale,
+      timezone: timezone.trim(), locale, allowSelfApproval: selfApproval,
     }),
     onSuccess: async () => { setSaved(true); await reloadMe(); },
   });
@@ -58,6 +59,10 @@ function OfficeForm({ office }: { office: Office }) {
           </Field>
         </div>
         <Field label={t('clients.address')} htmlFor="off-address"><Textarea id="off-address" dir="auto" value={address} onChange={(e) => setAddress(e.target.value)} /></Field>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" className="mt-1" checked={!selfApproval} onChange={(e) => setSelfApproval(!e.target.checked)} />
+          <span>{t('settings.separateApproval')}<span className="block text-xs text-slate-500">{t('settings.separateApprovalHint')}</span></span>
+        </label>
         <dl className="grid gap-2 text-sm sm:grid-cols-2">
           <div><dt className="text-xs text-slate-500">{t('settings.baseCurrency')}</dt><dd dir="ltr">{office.defaultCurrency}</dd><p className="text-xs text-slate-500">{t('settings.baseCurrencyHint')}</p></div>
           <div><dt className="text-xs text-slate-500">{t('settings.slug')}</dt><dd dir="ltr">{office.slug}</dd></div>

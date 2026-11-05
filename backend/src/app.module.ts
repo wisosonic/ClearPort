@@ -20,6 +20,7 @@ import { ClientsController } from './modules/clients/clients.controller';
 import { ClientsService } from './modules/clients/clients.service';
 import { PartiesController } from './modules/clients/parties.controller';
 import { LocalStorageService } from './infrastructure/storage/local-storage.service';
+import { MalwareScanner } from './infrastructure/storage/malware-scanner';
 import { UploadInterceptor } from './infrastructure/storage/upload.interceptor';
 import { DocumentsController } from './modules/documents/documents.controller';
 import { DocumentsService } from './modules/documents/documents.service';
@@ -86,7 +87,7 @@ export class ConfigModule {
   providers: [
     AuditService, TokenService, AuthService, UsersService, ProvisioningService, ClientsService,
     FilesService, ShipmentsService, ActivityService,
-    LocalStorageService, UploadInterceptor, DocumentsService, RequirementsService,
+    LocalStorageService, MalwareScanner, UploadInterceptor, DocumentsService, RequirementsService,
     WorkflowAdminService, TransitionsService, TasksService,
     RatesService, AccountingService, FinanceSetupService, ExpensesService, InvoicesService, PaymentsService, ReportsService,
     OperationsReportsService, DashboardService, ExportService, PdfService, PrintService,

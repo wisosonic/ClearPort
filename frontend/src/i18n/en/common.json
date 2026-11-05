@@ -309,7 +309,11 @@
     "numberRequired": "Enter the container number",
     "descriptionRequired": "Describe the goods",
     "currencyRequired": "Choose a currency for the price",
-    "forwarder": "Freight forwarder"
+    "forwarder": "Freight forwarder",
+    "remove": "Remove",
+    "removeShipmentQuestion": "Remove this shipment with its {{containers}} container(s) and {{goods}} goods line(s)? This cannot be undone here (the audit log keeps a record).",
+    "removeContainerQuestion": "Remove container {{number}}?",
+    "removeGoodsQuestion": "Remove this goods line?"
   },
   "docs": {
     "title": "Documents",
@@ -507,7 +511,9 @@
     "searchPlaceholder": "Payment number or reference…",
     "noneMatching": "No payments match.",
     "unappliedOnly": "Not fully applied",
-    "openFile": "Open file"
+    "openFile": "Open file",
+    "answersRequest": "Answers advance invoice",
+    "answersRequestHint": "Marks that request for funds as paid (in part or in full). The money is held for the client either way."
   },
   "exp": {
     "title": "Expenses",
@@ -650,7 +656,22 @@
     "foreignPerBase": "Foreign units per 1 {{base}}",
     "rateSource": "Source",
     "noRates": "No exchange rates recorded yet.",
-    "effective": "Effective from"
+    "effective": "Effective from",
+    "reval": {
+      "title": "Revalue foreign balances",
+      "intro": "Shows what balances held in other currencies (receivables, advances, payables, cash) are worth at the rates on file, and books the difference as an unrealised exchange gain or loss. Run it at the end of each period; running it again only books what changed since.",
+      "asOf": "As of",
+      "preview": "Preview",
+      "post": "Post this revaluation",
+      "posted": "Posted as {{number}}.",
+      "nothing": "Nothing to revalue: every foreign balance is already carried at the latest rate.",
+      "foreign": "Balance",
+      "carried": "Carried ({{currency}})",
+      "worth": "Worth now ({{currency}})",
+      "difference": "Difference",
+      "gain": "Net exchange gain: {{amount}}",
+      "loss": "Net exchange loss: {{amount}}"
+    }
   },
   "users": {
     "title": "Users and roles",
@@ -770,7 +791,9 @@
       "STORAGE": "Storage",
       "OTHER": "Other"
     },
-    "branchCodeInvalid": "Use letters, digits, - and _ only (up to 20)"
+    "branchCodeInvalid": "Use letters, digits, - and _ only (up to 20)",
+    "separateApproval": "Someone else must approve an expense",
+    "separateApprovalHint": "When on, the person who recorded an expense cannot approve it."
   },
   "lists": {
     "shipmentSearch": "BL, container, vessel or voyage…",
@@ -911,7 +934,21 @@
     "appliesToHint": "Optional note, e.g. \"sea shipments only\". It is shown, not enforced.",
     "mandatory": "Mandatory (otherwise it is only listed as optional)",
     "fixed": "The kind of file and the document type are fixed; remove the requirement and add it again to change them.",
-    "removeConfirm": "Stop requiring {{name}}?"
+    "removeConfirm": "Stop requiring {{name}}?",
+    "cond": {
+      "title": "Only for some files",
+      "hint": "Leave everything empty to ask for this document on every file of the type.",
+      "shipmentType": "Shipment by",
+      "priority": "Priority",
+      "containers": "Containers",
+      "clientType": "Client is",
+      "any": "Any",
+      "withContainers": "File has containers",
+      "withoutContainers": "File has no containers",
+      "sumShipment": "Only shipments by {{list}}",
+      "sumPriority": "Only priority {{list}}",
+      "sumClient": "Only {{type}} clients"
+    }
   },
   "costs": {
     "profit": "Profit",

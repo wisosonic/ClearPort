@@ -105,6 +105,8 @@ export const journalListQuerySchema = listQuerySchema.extend({
   accountCode: z.string().trim().max(10).optional(),
   clearanceFileId: uuid.optional(),
 });
+/** Revalue foreign balances at the rates on file for `asOf` (default today). `preview` shows the effect without posting. */
+export const revaluationSchema = z.object({ asOf: businessDate.optional(), preview: z.boolean().default(false) }).strict();
 export const trialBalanceQuerySchema = z.object({ asOf: dayString.optional() });
 
 // ───────────────────────────── expenses ─────────────────────────────
@@ -237,6 +239,8 @@ export const createPaymentSchema = z.object({
   paymentMethod: z.string().trim().toUpperCase().min(2).max(30),
   referenceNumber: optText(100).optional(),
   paymentDate: businessDate.optional(),
+  /** For a CLIENT_ADVANCE: the ADVANCE invoice (request for funds) this money answers. It settles that request; the books are unchanged. */
+  advanceInvoiceId: uuid.optional(),
   /** Apply (part of) the payment to invoices straight away. */
   allocations: z.array(allocationInputSchema).max(50).optional(),
   ...rateOverride,

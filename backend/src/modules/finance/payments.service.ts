@@ -147,6 +147,13 @@ export class PaymentsService {
     const r = await this.rates.resolve(auth.tenantId, input.currencyCode, paymentDate, input);
     const baseAmount = this.rates.toBase(input.amount, r);
     const isReceipt = input.paymentType !== 'REFUND';
+    if (input.advanceInvoiceId) {
+      if (input.paymentType !== 'CLIENT_ADVANCE') throw unprocessable('ADVANCE_INVOICE_NEEDS_ADVANCE', 'Only an advance payment can answer an advance invoice', [{ path: 'advanceInvoiceId' }]);
+      const inv = await this.db.client.invoice.findUnique({ where: { id: input.advanceInvoiceId } });
+      if (!inv || inv.invoiceType !== 'ADVANCE' || inv.status !== 'ISSUED') throw unprocessable('ADVANCE_INVOICE_NOT_FOUND', 'That is not an issued advance invoice in your office', [{ path: 'advanceInvoiceId' }]);
+      if (inv.clientId !== client.id) throw unprocessable('ADVANCE_INVOICE_CLIENT_MISMATCH', 'That advance invoice belongs to a different client', [{ path: 'advanceInvoiceId' }]);
+      if (inv.currencyCode !== input.currencyCode) throw unprocessable('ADVANCE_INVOICE_CURRENCY_MISMATCH', `The advance invoice is in ${inv.currencyCode}; receive the money in ${inv.currencyCode} to settle it`, [{ path: 'advanceInvoiceId' }]);
+    }
     if (!isReceipt && input.allocations?.length) throw unprocessable('REFUND_CANNOT_ALLOCATE', 'A refund cannot be allocated to invoices');
 
     if (!isReceipt) {
@@ -168,7 +175,7 @@ export class PaymentsService {
           clientId: client.id, clearanceFileId: input.clearanceFileId ?? null, paymentNumber, paymentType: input.paymentType, amount: input.amount,
           currencyCode: input.currencyCode, exchangeRate: r.rate, rateConvention: r.convention, rateSource: r.source, baseAmount,
           paymentMethod: input.paymentMethod, cashAccountId: cash.id, referenceNumber: input.referenceNumber ?? null, paymentDate,
-          receivedBy: auth.userId, status: 'POSTED',
+          receivedBy: auth.userId, status: 'POSTED', advanceInvoiceId: input.advanceInvoiceId ?? null,
         } as any,
       });
       await this.accounting.post(tx, {

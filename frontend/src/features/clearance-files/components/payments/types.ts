@@ -2,7 +2,7 @@ export type PaymentType = 'CLIENT_PAYMENT' | 'CLIENT_ADVANCE' | 'REFUND' | 'SUPP
 export type PaymentStatus = 'DRAFT' | 'POSTED' | 'CANCELLED' | 'REVERSED';
 /** The types a clerk can record from a file; supplier payments and reimbursements belong to expenses. */
 export const RECORDABLE: PaymentType[] = ['CLIENT_PAYMENT', 'CLIENT_ADVANCE', 'REFUND'];
-/** The office's payment methods are fixed reference data (there is no endpoint to list them). */
+/** Fallback list while the payment methods load from the API (GET /payment-methods). */
 export const METHODS = ['CASH', 'BANK_TRANSFER', 'CHEQUE', 'CARD', 'OTHER'] as const;
 
 export interface Allocation {

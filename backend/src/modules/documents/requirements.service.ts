@@ -4,7 +4,23 @@ import { conflict, notFound, unprocessable } from '../../common/errors';
 import { TenantDbService } from '../../database/prisma.module';
 import { AuditService } from '../audit/audit.service';
 import type { AuthContext, RequestMeta } from '../auth/auth.types';
-import type { createRequirementSchema, updateRequirementSchema } from './documents.schemas';
+import { requirementConditionsSchema, type RequirementConditions, type createRequirementSchema, type updateRequirementSchema } from './documents.schemas';
+
+/** Does a requirement with these conditions apply to this file? Conditions that cannot be read are treated as applying (asking for a document is the safe side). */
+export function conditionsApply(
+  raw: unknown,
+  file: { priority: string; clientType: string | null; shipments: { shipmentType: string; containerCount: number }[] },
+): boolean {
+  if (raw === null || raw === undefined) return true;
+  const parsed = requirementConditionsSchema.safeParse(raw);
+  if (!parsed.success) return true;
+  const c: RequirementConditions = parsed.data;
+  if (c.shipmentType && !file.shipments.some((s) => (c.shipmentType as string[]).includes(s.shipmentType))) return false;
+  if (c.hasContainers !== undefined && (file.shipments.some((s) => s.containerCount > 0)) !== c.hasContainers) return false;
+  if (c.priority && !(c.priority as string[]).includes(file.priority)) return false;
+  if (c.clientType && file.clientType !== c.clientType) return false;
+  return true;
+}
 
 const typeSelect = { id: true, code: true, nameEn: true, nameAr: true } as const;
 const stageSelect = { id: true, code: true, nameEn: true, nameAr: true, isTerminal: true } as const;
@@ -23,8 +39,8 @@ export interface ChecklistItem {
 }
 
 /**
- * Required-document checklists (spec 11.4 / 5.2). Configurable per clearance type and stage; no
- * document list is hardcoded. A requirement is SATISFIED when the file holds at least one
+ * Required-document checklists (spec 11.4 / 5.2). Configurable per clearance type and stage, optionally
+ * only for some files (see `conditionsApply`); no document list is hardcoded. A requirement is SATISFIED when the file holds at least one
  * non-void, non-rejected document of that type (review/approval is a separate, optional step).
  */
 @Injectable()
@@ -37,8 +53,12 @@ export class RequirementsService {
   // ── per-file checklist ──
 
   async checklist(fileId: string): Promise<ChecklistItem[]> {
-    const file = await this.db.client.clearanceFile.findUnique({ where: { id: fileId }, select: { fileType: true } });
+    const file = await this.db.client.clearanceFile.findUnique({
+      where: { id: fileId },
+      select: { fileType: true, priority: true, client: { select: { clientType: true } }, shipments: { select: { shipmentType: true, _count: { select: { containers: true } } } } },
+    });
     if (!file) throw notFound('CLEARANCE_FILE_NOT_FOUND', 'Clearance file not found');
+    const facts = { priority: file.priority, clientType: file.client?.clientType ?? null, shipments: file.shipments.map((s) => ({ shipmentType: s.shipmentType, containerCount: s._count.containers })) };
     const [reqs, docs] = await Promise.all([
       this.db.client.documentRequirement.findMany({
         where: { fileType: file.fileType },
@@ -50,7 +70,7 @@ export class RequirementsService {
         select: { id: true, documentTypeId: true, status: true },
       }),
     ]);
-    return reqs.map((r) => {
+    return reqs.filter((r) => conditionsApply(r.conditions, facts)).map((r) => {
       const matching = docs.filter((d) => d.documentTypeId === r.documentTypeId);
       const usable = matching.filter((d) => d.status !== 'REJECTED' && d.status !== 'VOID');
       const state: ChecklistItem['state'] =

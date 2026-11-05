@@ -193,6 +193,43 @@ describe('payments and allocations API', () => {
     });
   });
 
+  describe('advances answering an advance invoice', () => {
+    const advanceInvoice = async (amount: string, o: { currency?: string; clientFile?: string } = {}) => {
+      const d = await ok(api.req('post', '/invoices', A.accountant).send({ clearanceFileId: o.clientFile ?? A.fileId, invoiceType: 'ADVANCE', currencyCode: o.currency ?? 'USD', items: [{ description: 'Advance on account', unitPrice: amount }] }));
+      return ok(api.req('post', `/invoices/${d.id}/issue`, A.accountant).send({ issueDate: '2026-11-05' })) as Promise<any>;
+    };
+
+    it('settles the request as money arrives, without touching the books beyond the advance itself', async () => {
+      const adv = await advanceInvoice('500');
+      expect(await getInv(adv.id)).toMatchObject({ paidAmount: '0.0000', outstandingAmount: '500.0000', paymentStatus: 'UNPAID' });
+      const held0 = await bal('2100');
+      const p1 = await ok(pay({ paymentType: 'CLIENT_ADVANCE', amount: '200', advanceInvoiceId: adv.id }));
+      expect(p1.advanceInvoiceId).toBe(adv.id);
+      expect(await getInv(adv.id)).toMatchObject({ paidAmount: '200.0000', outstandingAmount: '300.0000', paymentStatus: 'PARTIALLY_PAID' });
+      const p2 = await ok(pay({ paymentType: 'CLIENT_ADVANCE', amount: '300', advanceInvoiceId: adv.id }));
+      expect(await getInv(adv.id)).toMatchObject({ outstandingAmount: '0.0000', paymentStatus: 'PAID' });
+      expect(Number(await bal('2100')) - Number(held0)).toBe(500); // it is simply a client advance in the ledger
+      // the money stays usable for real invoices
+      const real = await invoice('120');
+      await ok(allocate(p1.id, [{ invoiceId: real.id, amount: '120' }]));
+      // cancelling a payment re-opens the request
+      await ok(api.req('post', `/payments/${p2.id}/cancel`, A.accountant).send({ reason: 'bounced cheque' }));
+      expect(await getInv(adv.id)).toMatchObject({ paidAmount: '200.0000', paymentStatus: 'PARTIALLY_PAID' });
+    });
+
+    it('accepts only a matching issued advance invoice and an advance payment', async () => {
+      const adv = await advanceInvoice('100');
+      const normal = await invoice('100');
+      const bad = async (body: Record<string, unknown>, code: string, token = A.accountant) => expect((await pay(body, token)).body.error.code).toBe(code);
+      await bad({ paymentType: 'CLIENT_PAYMENT', advanceInvoiceId: adv.id }, 'ADVANCE_INVOICE_NEEDS_ADVANCE');
+      await bad({ paymentType: 'CLIENT_ADVANCE', advanceInvoiceId: normal.id }, 'ADVANCE_INVOICE_NOT_FOUND'); // a real invoice is allocated, not answered
+      await bad({ paymentType: 'CLIENT_ADVANCE', advanceInvoiceId: '00000000-0000-4000-8000-000000000000' }, 'ADVANCE_INVOICE_NOT_FOUND');
+      await bad({ paymentType: 'CLIENT_ADVANCE', advanceInvoiceId: adv.id, clientId: client2 }, 'ADVANCE_INVOICE_CLIENT_MISMATCH');
+      await bad({ paymentType: 'CLIENT_ADVANCE', advanceInvoiceId: adv.id, currencyCode: 'LBP', cashAccountId: A.cash.lbp, amount: '9000000' }, 'ADVANCE_INVOICE_CURRENCY_MISMATCH');
+      await bad({ paymentType: 'CLIENT_ADVANCE', advanceInvoiceId: adv.id }, 'CLIENT_NOT_FOUND', B.accountant); // another office: not even the client is visible
+    });
+  });
+
   describe('cross-currency allocation and realized FX', () => {
     it('converts a USD payment into LBP at the payment date\'s rate; no FX when the rate is unchanged', async () => {
       const lbpInv = await invoice('89500000', { currency: 'LBP', issueDate: '2026-11-05' }); // carried at 1000 USD

@@ -53,6 +53,10 @@ beforeEach(() => {
     if (path === '/cash-accounts' && method === 'GET') return ok(CASH);
     if (path === '/exchange-rates' && method === 'GET') return ok(RATES);
     if (path === '/currencies') return ok([{ code: 'USD', name: 'US dollar', decimalPlaces: 2 }, { code: 'LBP', name: 'Lebanese pound', decimalPlaces: 0 }, { code: 'EUR', name: 'Euro', decimalPlaces: 2 }]);
+    if (path === '/accounting/revaluation') return ok({
+      asOf: body.asOf, baseCurrency: 'USD', netGainLoss: '-105.0000', entry: body.preview ? null : { id: 'je1', entryNumber: 'JE-2026-00009' }, skipped: [],
+      adjustments: [{ accountCode: '1200', accountName: 'Accounts receivable', currency: 'LBP', foreignBalance: '89500000.0000', carriedBase: '1000.0000', revaluedBase: '895.0000', difference: '-105.0000' }],
+    });
     if (method === 'POST' || method === 'PATCH') return ok({ id: 'x' });
     return fail(404, 'NOT_FOUND', 'no route');
   }));
@@ -216,9 +220,26 @@ describe('exchange rates', () => {
     expect(sent('POST', '/exchange-rates')[0].body.convention).toBe('BASE_PER_FOREIGN');
   });
 
+  it('previews a revaluation, then posts it only on request', async () => {
+    const user = await open('Exchange rates');
+    const date = await screen.findByLabelText('As of');
+    await user.clear(date);
+    await user.type(date, '2026-12-31');
+    await user.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(await screen.findByText('Net exchange loss: 105.00 USD')).toBeInTheDocument();
+    expect(sent('POST', '/accounting/revaluation')[0].body).toEqual({ asOf: '2026-12-31', preview: true });
+    const row = screen.getByText('89,500,000 LBP').closest('tr')!;
+    expect(within(row).getByText('895.00 USD')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Post this revaluation' }));
+    expect(await screen.findByText('Posted as JE-2026-00009.')).toBeInTheDocument();
+    expect(sent('POST', '/accounting/revaluation')[1].body).toEqual({ asOf: '2026-12-31', preview: false });
+    expect(screen.queryByRole('button', { name: 'Post this revaluation' })).not.toBeInTheDocument();
+  });
+
   it('can be viewed but not changed without accounting.post', async () => {
     permissions = ['accounting.view'];
     await open('Exchange rates');
+    expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument();
     await screen.findByText('1 USD = 89500 LBP');
     expect(screen.queryByRole('button', { name: 'Record exchange rate' })).not.toBeInTheDocument();
   });

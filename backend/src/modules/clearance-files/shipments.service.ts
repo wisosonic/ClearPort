@@ -121,6 +121,46 @@ export class ShipmentsService {
     return after;
   }
 
+  /** Removes a shipment added by mistake, with its containers and goods lines. The audit log keeps what was removed. */
+  async remove(auth: AuthContext, id: string, meta: RequestMeta) {
+    const before = await this.get(id);
+    this.files.assertEditable(await this.files.require(before.clearanceFileId));
+    await this.db.client.container.deleteMany({ where: { shipmentId: id } });
+    await this.db.client.goodsItem.deleteMany({ where: { shipmentId: id } });
+    await this.db.client.shipment.delete({ where: { id } });
+    await this.activity.log(before.clearanceFileId, auth.userId, 'SHIPMENT_REMOVED', `Shipment${describeShipment(before)} removed`, { shipmentId: id, containers: before.containers.length, goodsLines: before.goodsItems.length });
+    await this.audit.record({
+      tenantId: auth.tenantId, actorUserId: auth.userId, action: 'SHIPMENT_DELETED', entityType: 'Shipment',
+      entityId: id, before, ip: meta.ip, userAgent: meta.userAgent,
+    });
+  }
+
+  async removeContainer(auth: AuthContext, id: string, meta: RequestMeta) {
+    const before = await this.db.client.container.findUnique({ where: { id } });
+    if (!before) throw notFound('CONTAINER_NOT_FOUND', 'Container not found');
+    const shipment = await this.shipmentOf(before.shipmentId);
+    this.files.assertEditable(shipment.file);
+    await this.db.client.container.delete({ where: { id } });
+    await this.activity.log(shipment.clearanceFileId, auth.userId, 'CONTAINER_REMOVED', `Container ${before.containerNumber} removed`, { containerId: id });
+    await this.audit.record({
+      tenantId: auth.tenantId, actorUserId: auth.userId, action: 'CONTAINER_DELETED', entityType: 'Container',
+      entityId: id, before, ip: meta.ip, userAgent: meta.userAgent,
+    });
+  }
+
+  async removeGoods(auth: AuthContext, id: string, meta: RequestMeta) {
+    const before = await this.db.client.goodsItem.findUnique({ where: { id } });
+    if (!before) throw notFound('GOODS_ITEM_NOT_FOUND', 'Goods line not found');
+    const shipment = await this.shipmentOf(before.shipmentId);
+    this.files.assertEditable(shipment.file);
+    await this.db.client.goodsItem.delete({ where: { id } });
+    await this.activity.log(shipment.clearanceFileId, auth.userId, 'GOODS_REMOVED', `Goods line removed: ${truncate(before.description)}`, { goodsItemId: id });
+    await this.audit.record({
+      tenantId: auth.tenantId, actorUserId: auth.userId, action: 'GOODS_ITEM_DELETED', entityType: 'GoodsItem',
+      entityId: id, before, ip: meta.ip, userAgent: meta.userAgent,
+    });
+  }
+
   // ───────────────────────────── containers ─────────────────────────────
 
   async addContainer(auth: AuthContext, shipmentId: string, input: CreateContainerInput, meta: RequestMeta) {
@@ -278,10 +318,11 @@ export class ShipmentsService {
   }
 
   private async assertShipmentRefs(input: { shippingAgentId?: string | null; freightForwarderId?: string | null; originPortId?: string | null; destinationPortId?: string | null }) {
-    for (const [field, id] of [['shippingAgentId', input.shippingAgentId], ['freightForwarderId', input.freightForwarderId]] as const) {
-      if (id && !(await this.db.client.businessParty.findUnique({ where: { id } }))) {
-        throw unprocessable('PARTY_NOT_FOUND', 'Business party not found in your office', [{ path: field }]);
-      }
+    for (const [field, id, kind] of [['shippingAgentId', input.shippingAgentId, 'SHIPPING_AGENT'], ['freightForwarderId', input.freightForwarderId, 'FREIGHT_FORWARDER']] as const) {
+      if (!id) continue;
+      const party = await this.db.client.businessParty.findUnique({ where: { id } });
+      if (!party) throw unprocessable('PARTY_NOT_FOUND', 'Business party not found in your office', [{ path: field }]);
+      if (party.partyType !== kind) throw unprocessable('PARTY_WRONG_KIND', `${party.name} is not recorded as a ${kind === 'SHIPPING_AGENT' ? 'shipping agent' : 'freight forwarder'}`, [{ path: field }]);
     }
     for (const [field, id] of [['originPortId', input.originPortId], ['destinationPortId', input.destinationPortId]] as const) {
       if (id && !(await this.db.client.port.findUnique({ where: { id } }))) {

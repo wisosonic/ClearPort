@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { conflict, DomainError, notFound, unprocessable } from '../../common/errors';
-import { abs, add, compare, isPositive, sub, sum, ZERO, type DecimalString } from '../../common/money';
+import { abs, add, compare, isPositive, negate, sub, sum, ZERO, type DecimalString } from '../../common/money';
 import { nextDocumentNumber } from '../../common/numbering';
 import { orderBy, pageArgs, paginated } from '../../common/pagination';
 import { searchIds } from '../../common/search';
@@ -41,6 +41,8 @@ export interface PostingLine {
   /** Base-currency value. Callers that must balance exactly across several lines pass it explicitly. */
   base: DecimalString;
   clearanceFileId?: string | null;
+  /** Only for revaluation: the line moves the base value of a foreign balance without changing the foreign amount (amount is 0). */
+  baseOnly?: boolean;
 }
 
 export interface PostingSpec {
@@ -85,7 +87,7 @@ export class AccountingService {
     let debits = ZERO;
     let credits = ZERO;
     for (const l of spec.lines) {
-      if (!isPositive(l.amount) || !isPositive(l.base)) {
+      if ((!l.baseOnly && !isPositive(l.amount)) || (l.baseOnly && compare(l.amount, ZERO) !== 0) || !isPositive(l.base)) {
         throw new Error(`Journal line amounts must be positive (account ${l.account}, ${l.amount}, base ${l.base})`);
       }
       if (l.side === 'DEBIT') debits = add(debits, l.base);
@@ -131,11 +133,12 @@ export class AccountingService {
       entryDate: ctx.date ?? new Date(), description: `Reversal of ${original.entryNumber}: ${ctx.reason}`,
       sourceType: 'REVERSAL', sourceId: original.id, createdBy: ctx.userId, reversalOfId: original.id,
       lines: original.lines.map((l: any) => {
-        const wasDebit = Number(l.debit) > 0;
+        const wasDebit = Number(l.baseDebit) > 0;
+        const amount = wasDebit ? l.debit : l.credit;
         return {
           account: codeById.get(l.accountId)!, side: wasDebit ? 'CREDIT' : 'DEBIT', currency: l.currencyCode,
-          amount: wasDebit ? l.debit : l.credit, rate: l.exchangeRate, convention: l.rateConvention,
-          base: wasDebit ? l.baseDebit : l.baseCredit, clearanceFileId: l.clearanceFileId,
+          amount, rate: l.exchangeRate, convention: l.rateConvention,
+          base: wasDebit ? l.baseDebit : l.baseCredit, clearanceFileId: l.clearanceFileId, baseOnly: Number(amount) === 0,
         } satisfies PostingLine;
       }),
     });
@@ -168,6 +171,72 @@ export class AccountingService {
       account: ACCOUNTS.FX_GAIN_LOSS, side: cmp > 0 ? 'CREDIT' : 'DEBIT', currency: baseCurrency, amount: diff,
       rate: '1.0000000000', convention: 'BASE_PER_FOREIGN', base: diff, clearanceFileId: clearanceFileId ?? null,
     }];
+  }
+
+  // ═══════════════════════════ foreign-exchange revaluation ═══════════════════════════
+
+  /**
+   * Revalues the foreign-currency balances of every asset and liability account at the rates on file
+   * for `asOf`, booking the difference to 4300 (FX gain / loss) in ONE entry dated `asOf`.
+   *
+   * Each account's carried base value (what the ledger holds today, including earlier revaluations) is compared
+   * with its foreign balance converted at the `asOf` rate; only the difference is booked, so running it again at the next
+   * period end continues from where it stopped, and a balance that has been settled in full is brought back to nil.
+   * A currency without a rate for that date is skipped and reported — no rate is guessed.
+   * `preview` returns the adjustments without posting.
+   */
+  async revalue(auth: AuthContext, input: { asOf: Date; preview: boolean }, meta: RequestMeta) {
+    const tenantId = auth.tenantId;
+    const base = await this.rates.baseCurrency(tenantId);
+    const cutoff = new Date(input.asOf.getTime());
+    cutoff.setUTCHours(23, 59, 59, 999);
+    const accounts = await this.db.client.chartOfAccount.findMany({ where: { accountType: { in: ['ASSET', 'LIABILITY'] } } });
+    const lines = await this.db.client.journalEntryLine.findMany({
+      where: { accountId: { in: accounts.map((a) => a.id) }, currencyCode: { not: base }, journalEntry: { status: { in: [...LEDGER_STATUSES] }, entryDate: { lte: cutoff } } },
+      select: { accountId: true, currencyCode: true, debit: true, credit: true, baseDebit: true, baseCredit: true },
+    });
+    const groups = new Map<string, typeof lines>();
+    for (const l of lines) groups.set(`${l.accountId}|${l.currencyCode}`, [...(groups.get(`${l.accountId}|${l.currencyCode}`) ?? []), l]);
+
+    const adjustments: { accountCode: string; accountName: string; currency: string; foreignBalance: DecimalString; carriedBase: DecimalString; revaluedBase: DecimalString; difference: DecimalString }[] = [];
+    const skipped: { accountCode: string; currency: string; reason: string }[] = [];
+    for (const [key, rows] of groups) {
+      const [accountId, currency] = key.split('|') as [string, string];
+      const account = accounts.find((a) => a.id === accountId)!;
+      const foreign = sub(sum(rows.map((r) => r.debit)), sum(rows.map((r) => r.credit)));
+      const carried = sub(sum(rows.map((r) => r.baseDebit)), sum(rows.map((r) => r.baseCredit)));
+      let r;
+      try { r = await this.rates.resolve(tenantId, currency, input.asOf); } catch { skipped.push({ accountCode: account.accountCode, currency, reason: `No ${currency} exchange rate on or before ${input.asOf.toISOString().slice(0, 10)}` }); continue; }
+      const magnitude = this.rates.toBase(abs(foreign), r);
+      const revalued = compare(foreign, ZERO) < 0 ? negate(magnitude) : magnitude;
+      const difference = sub(revalued, carried);
+      if (compare(difference, ZERO) === 0) continue;
+      adjustments.push({ accountCode: account.accountCode, accountName: account.name, currency, foreignBalance: foreign, carriedBase: carried, revaluedBase: revalued, difference });
+    }
+    adjustments.sort((a, b) => a.accountCode.localeCompare(b.accountCode) || a.currency.localeCompare(b.currency));
+    const net = sum(adjustments.map((a) => a.difference)); // + = gain, - = loss
+    const result = { asOf: input.asOf.toISOString().slice(0, 10), baseCurrency: base, adjustments, skipped, netGainLoss: net, entry: null as null | { id: string; entryNumber: string } };
+    if (input.preview || adjustments.length === 0) return result;
+
+    const postingLines: PostingLine[] = adjustments.map((a) => ({
+      account: a.accountCode, side: compare(a.difference, ZERO) > 0 ? 'DEBIT' : 'CREDIT', currency: a.currency, amount: ZERO, rate: '1.0000000000',
+      convention: 'BASE_PER_FOREIGN', base: abs(a.difference), baseOnly: true,
+    }));
+    postingLines.push({
+      account: ACCOUNTS.FX_GAIN_LOSS, side: compare(net, ZERO) > 0 ? 'CREDIT' : 'DEBIT', currency: base, amount: abs(net), rate: '1.0000000000', convention: 'BASE_PER_FOREIGN', base: abs(net),
+    });
+    // gains and losses on different accounts may offset: the 4300 line carries only the net, the rest balance among the account lines
+    const debits = sum(postingLines.filter((l) => l.side === 'DEBIT').map((l) => l.base));
+    const credits = sum(postingLines.filter((l) => l.side === 'CREDIT').map((l) => l.base));
+    if (compare(debits, credits) !== 0) throw new Error(`Unbalanced revaluation entry: ${debits} vs ${credits}`);
+    const entry = await this.db.client.$transaction((tx) => this.post(tx, {
+      entryDate: input.asOf, description: `Foreign-exchange revaluation as of ${result.asOf}`, sourceType: 'FX_REVALUATION', createdBy: auth.userId, lines: postingLines,
+    }));
+    await this.audit.record({
+      tenantId, actorUserId: auth.userId, action: 'FX_REVALUATION_POSTED', entityType: 'JournalEntry', entityId: entry.id,
+      after: { entryNumber: entry.entryNumber, asOf: result.asOf, netGainLoss: net, accounts: adjustments.length }, ip: meta.ip, userAgent: meta.userAgent,
+    });
+    return { ...result, entry };
   }
 
   // ═══════════════════════════ manual entries and reading ═══════════════════════════

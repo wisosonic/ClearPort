@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { conflict, notFound } from '../../common/errors';
+import { timeZone } from '../../common/zod-helpers';
 import type { PrismaClient } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.module';
 import { provisionTenantDefaults } from '../../seed/tenant-defaults';
@@ -12,7 +13,7 @@ export const provisionTenantSchema = z.object({
   slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'lowercase letters, digits and hyphens only').min(2).max(100),
   legalName: z.string().trim().max(200).optional(),
   defaultCurrency: z.string().length(3).toUpperCase().default('USD'),
-  timezone: z.string().max(50).default('Asia/Beirut'),
+  timezone: timeZone.default('Asia/Beirut'),
   locale: z.enum(['en', 'ar']).default('en'),
   ownerEmail: z.string().trim().toLowerCase().email().max(150),
   ownerFirstName: z.string().trim().min(1).max(100),

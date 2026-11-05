@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Inject, Patch } from '@nestjs/common';
 import { z } from 'zod';
+import { timeZone } from '../../common/zod-helpers';
 import { ZodPipe } from '../../common/zod.pipe';
 import { PrismaService } from '../../database/prisma.module';
 import { AuditService } from '../audit/audit.service';
@@ -8,7 +9,7 @@ import { Authenticated, CurrentAuth, ReqMeta, RequirePermissions } from '../auth
 
 const officeSelect = {
   id: true, name: true, slug: true, legalName: true, email: true, phone: true, address: true,
-  defaultCurrency: true, timezone: true, locale: true, status: true,
+  defaultCurrency: true, timezone: true, locale: true, allowSelfApproval: true, status: true,
 } as const;
 
 // defaultCurrency (the base currency) is intentionally not editable: changing it would
@@ -19,8 +20,10 @@ const updateOfficeSchema = z.object({
   email: z.string().trim().email().max(150).nullable(),
   phone: z.string().trim().max(50).nullable(),
   address: z.string().trim().max(500).nullable(),
-  timezone: z.string().trim().max(50),
+  timezone: timeZone,
   locale: z.enum(['en', 'ar']),
+  /** Off = whoever records an expense cannot also approve it. */
+  allowSelfApproval: z.boolean(),
 }).partial().strict();
 
 @Controller('tenant')

@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { conflict, notFound, unprocessable } from '../../common/errors';
+import { conflict, forbidden, notFound, unprocessable } from '../../common/errors';
 import { DECIMAL_SORT_LOAD_CAP, decimalSort, orderBy, pageArgs, paginated, sortRowsByDecimal } from '../../common/pagination';
 import { searchIds } from '../../common/search';
-import { TenantDbService } from '../../database/prisma.module';
+import { PrismaService, TenantDbService } from '../../database/prisma.module';
 import { requireTenant } from '../../database/tenant-context';
 import { AuditService } from '../audit/audit.service';
 import type { AuthContext, RequestMeta } from '../auth/auth.types';
@@ -33,6 +33,7 @@ const LIVE_INVOICE = ['DRAFT', 'ISSUED'] as const;
 export class ExpensesService {
   constructor(
     @Inject(TenantDbService) private readonly db: TenantDbService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(FilesService) private readonly files: FilesService,
     @Inject(ActivityService) private readonly activity: ActivityService,
     @Inject(AuditService) private readonly audit: AuditService,
@@ -166,6 +167,11 @@ export class ExpensesService {
     const e = await this.require(id);
     if (e.status !== 'DRAFT') throw conflict('EXPENSE_NOT_DRAFT', `This expense is already ${e.status.toLowerCase()}`);
     if (e.clearanceFileId) this.files.assertEditable(await this.files.require(e.clearanceFileId));
+    // Segregation of duties: an office can require that the person who recorded an expense is not the one who approves it.
+    if (e.recordedBy === auth.userId) {
+      const office = await this.prisma.client.tenant.findUniqueOrThrow({ where: { id: auth.tenantId }, select: { allowSelfApproval: true } });
+      if (!office.allowSelfApproval) throw forbidden('SELF_APPROVAL_NOT_ALLOWED', 'This office requires someone other than the person who recorded an expense to approve it');
+    }
     const category = await this.requireCategory(e.categoryId, true);
     const paidAt = input.paidAt ?? new Date();
 

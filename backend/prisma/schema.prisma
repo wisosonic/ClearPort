@@ -195,6 +195,8 @@ model Tenant {
   defaultCurrency String // ISO 4217 base currency
   timezone        String       @default("Asia/Beirut")
   locale          String       @default("en")
+  /// false = whoever records an expense cannot also approve it
+  allowSelfApproval Boolean    @default(true)
   status          TenantStatus @default(ACTIVE)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
@@ -1071,6 +1073,8 @@ model Payment {
   rateSource      String?
   baseAmount      String
   paymentMethod   String // payment_methods.code
+  /// An advance received against an ADVANCE invoice (a request for funds). Bookkeeping is unchanged: the money is a client advance either way.
+  advanceInvoiceId String?
   cashAccountId   String
   referenceNumber String?
   paymentDate     DateTime

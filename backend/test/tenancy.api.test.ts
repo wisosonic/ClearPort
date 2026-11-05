@@ -138,6 +138,9 @@ describe('multi-tenant isolation and RBAC (API)', () => {
       expect(ok.body.data.locale).toBe('ar');
       const cur = await api.req('patch', '/tenant', A).send({ defaultCurrency: 'LBP' });
       expect(cur.status).toBe(400); // .strict(): unknown field
+      expect((await api.req('patch', '/tenant', A).send({ timezone: 'Mars/Olympus' })).status).toBe(400); // not a real time zone
+      expect((await api.req('patch', '/tenant', A).send({ timezone: 'Europe/Paris' })).status).toBe(200);
+      await api.req('patch', '/tenant', A).send({ timezone: 'Asia/Beirut' });
       const other = await api.req('get', '/tenant', B);
       expect(other.body.data.locale).toBe('en'); // B untouched
       expect(other.body.data.slug).toBe('office-b');

@@ -433,6 +433,53 @@ describe('documents API', () => {
   });
 });
 
+describe('requirements that apply only to some files', () => {
+  let api: TestApi;
+  let A: string;
+  let typeId: string;
+  let clientId: string;
+
+  const ok = async (p: any) => { const r = await p; if (r.status >= 300) throw new Error(`unexpected ${r.status}: ${JSON.stringify(r.body)}`); return r.body.data; };
+  const checklist = async (fileId: string) => (await ok(api.req('get', `/clearance-files/${fileId}/document-requirements`, A))).map((c: any) => c.documentType.code);
+  const newFile = (body: Record<string, unknown> = {}) => ok(api.req('post', '/clearance-files', A).send({ fileType: 'IMPORT', clientId, ...body }));
+
+  beforeAll(async () => {
+    api = await startApi();
+    await provision(api, 'docs-cond', 'owner@docs-cond.test');
+    A = (await signIn(api, 'owner@docs-cond.test')).accessToken;
+    clientId = (await ok(api.req('post', '/clients', A).send({ name: 'Cond Client' }))).id;
+    typeId = (await ok(api.req('post', '/document-types', A).send({ code: 'REEFER_CERT', nameEn: 'Reefer certificate', nameAr: 'شهادة تبريد' }))).id;
+  });
+  afterAll(async () => api.close());
+
+  it('lists a conditional requirement only for files that match it', async () => {
+    const req = (conditions: object) => api.req('post', '/document-requirements', A).send({ fileType: 'IMPORT', documentTypeId: typeId, isRequired: true, conditions });
+    expect((await req({ colour: 'red' })).status).toBe(400); // unknown condition
+    expect((await req({ shipmentType: [] })).status).toBe(400);
+    const made = await ok(req({ shipmentType: ['SEA'], hasContainers: true, priority: ['HIGH', 'URGENT'] }));
+
+    const plain = await newFile();
+    expect(await checklist(plain.id)).not.toContain('REEFER_CERT'); // no shipment yet
+    const sea = await newFile({ priority: 'HIGH' });
+    const sh = await ok(api.req('post', `/clearance-files/${sea.id}/shipments`, A).send({ shipmentType: 'SEA' }));
+    expect(await checklist(sea.id)).not.toContain('REEFER_CERT'); // no container yet
+    await ok(api.req('post', `/shipments/${sh.id}/containers`, A).send({ containerNumber: 'ABCU1234560', nonStandardNumber: true }));
+    expect(await checklist(sea.id)).toContain('REEFER_CERT');
+
+    const lowPriority = await newFile({ priority: 'LOW' });
+    const sh2 = await ok(api.req('post', `/clearance-files/${lowPriority.id}/shipments`, A).send({ shipmentType: 'SEA' }));
+    await ok(api.req('post', `/shipments/${sh2.id}/containers`, A).send({ containerNumber: 'ABCU1234560', nonStandardNumber: true }));
+    expect(await checklist(lowPriority.id)).not.toContain('REEFER_CERT'); // priority does not match
+
+    // changing the conditions changes who is asked; clearing them asks everyone
+    await ok(api.req('patch', `/document-requirements/${made.id}`, A).send({ conditions: { priority: ['LOW'] } }));
+    expect(await checklist(lowPriority.id)).toContain('REEFER_CERT');
+    expect(await checklist(sea.id)).not.toContain('REEFER_CERT');
+    await ok(api.req('patch', `/document-requirements/${made.id}`, A).send({ conditions: null }));
+    expect(await checklist(plain.id)).toContain('REEFER_CERT');
+  });
+});
+
 /** supertest: collect the body as a Buffer. */
 function binary(res: any, cb: (err: Error | null, body: Buffer) => void) {
   const chunks: Buffer[] = [];

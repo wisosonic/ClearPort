@@ -19,11 +19,18 @@ const schema = z.object({
   BACKUP_DIR: z.string().optional(),
   BACKUP_PASSPHRASE: z.string().min(12).optional(),
   BACKUP_KEEP: z.coerce.number().int().min(1).default(14),
+  // Uploaded files are scanned before they are stored. 'builtin' only recognises the EICAR test file; 'clamd' uses a ClamAV daemon.
+  MALWARE_SCAN: z.enum(['builtin', 'clamd']).default('builtin'),
+  CLAMD_HOST: z.string().default('127.0.0.1'),
+  CLAMD_PORT: z.coerce.number().int().positive().default(3310),
+  CLAMD_TIMEOUT_MS: z.coerce.number().int().min(1000).default(30000),
   TASK_REMINDER_LEAD_HOURS: z.coerce.number().min(0.1).max(720).default(24),
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET must be at least 32 characters'),
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).default(900),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).default(30),
   CORS_ORIGINS: z.string().default(''),
+  // Number of reverse proxies in front of the API (0 = none). Needed so rate limits and the audit log see the real client address.
+  TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
   // Rate limits (per minute, per IP). Auth endpoints get the strict limit.
   RATE_LIMIT_DEFAULT: z.coerce.number().int().positive().default(300),
   RATE_LIMIT_AUTH: z.coerce.number().int().positive().default(10),
@@ -37,7 +44,15 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     const problems = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
     throw new Error(`Invalid environment configuration:\n${problems}`);
   }
-  return parsed.data;
+  // A production start with an example or default secret, or open CORS, is refused outright.
+  const e = parsed.data;
+  if (e.NODE_ENV === 'production') {
+    const problems: string[] = [];
+    if (/change-me|example|secret-here/i.test(e.JWT_ACCESS_SECRET)) problems.push('JWT_ACCESS_SECRET is still the example value; generate a random one');
+    if (e.CORS_ORIGINS.split(',').some((o) => o.trim() === '*')) problems.push('CORS_ORIGINS must list the web app address, not *');
+    if (problems.length) throw new Error(`Unsafe production configuration:\n${problems.map((p) => `  - ${p}`).join('\n')}`);
+  }
+  return e;
 }
 
 export const ENV = Symbol('ENV');

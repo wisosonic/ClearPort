@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Query } from '@nestjs/common';
 import { z } from 'zod';
 import { searchIds } from '../../common/search';
 import { orderBy, pageArgs, paginated } from '../../common/pagination';
@@ -127,6 +127,27 @@ export class ShipmentsController {
     @ReqMeta() meta: RequestMeta,
   ) {
     return this.shipments.update(auth, shipmentId, body, meta);
+  }
+
+  @RequirePermissions('clearance_files.update')
+  @HttpCode(204)
+  @Delete('shipments/:id')
+  async removeShipment(@CurrentAuth() auth: AuthContext, @Param('id', id()) shipmentId: string, @ReqMeta() meta: RequestMeta) {
+    await this.shipments.remove(auth, shipmentId, meta);
+  }
+
+  @RequirePermissions('clearance_files.update')
+  @HttpCode(204)
+  @Delete('containers/:id')
+  async removeContainer(@CurrentAuth() auth: AuthContext, @Param('id', id()) containerId: string, @ReqMeta() meta: RequestMeta) {
+    await this.shipments.removeContainer(auth, containerId, meta);
+  }
+
+  @RequirePermissions('clearance_files.update')
+  @HttpCode(204)
+  @Delete('goods/:id')
+  async removeGoods(@CurrentAuth() auth: AuthContext, @Param('id', id()) goodsId: string, @ReqMeta() meta: RequestMeta) {
+    await this.shipments.removeGoods(auth, goodsId, meta);
   }
 
   @RequirePermissions('clearance_files.update')

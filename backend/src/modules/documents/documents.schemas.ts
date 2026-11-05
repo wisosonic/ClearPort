@@ -46,6 +46,21 @@ export const updateDocumentTypeSchema = z.object({
 // ───────────────────────────── requirements ─────────────────────────────
 
 const FILE_TYPES = ['IMPORT', 'EXPORT', 'OTHER'] as const;
+
+/**
+ * When a requirement applies. Every key given must hold for the file; omit the whole object to always apply.
+ *  - shipmentType: the file has a shipment of one of these types (SEA, AIR, LAND, OTHER)
+ *  - hasContainers: true = the file has containers, false = it has none
+ *  - priority: the file's priority is one of these
+ *  - clientType: the client is a COMPANY or an INDIVIDUAL
+ */
+export const requirementConditionsSchema = z.object({
+  shipmentType: z.array(z.enum(['SEA', 'AIR', 'LAND', 'OTHER'])).min(1).optional(),
+  hasContainers: z.boolean().optional(),
+  priority: z.array(z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT'])).min(1).optional(),
+  clientType: z.enum(['COMPANY', 'INDIVIDUAL']).optional(),
+}).strict();
+export type RequirementConditions = z.infer<typeof requirementConditionsSchema>;
 export const createRequirementSchema = z.object({
   fileType: z.enum(FILE_TYPES),
   documentTypeId: uuid,
@@ -53,13 +68,13 @@ export const createRequirementSchema = z.object({
   /** Stage the document must exist before entering. Omit: required before the file reaches a terminal stage. */
   isRequiredBeforeStageId: uuid.optional(),
   appliesTo: optText(200).optional(),
-  /** Stored for the UI; not yet evaluated by the backend. */
-  conditions: z.record(z.string(), z.unknown()).optional(),
+  /** Omit to apply to every file of the type. */
+  conditions: requirementConditionsSchema.optional(),
 });
 export const updateRequirementSchema = z.object({
   isRequired: z.boolean(),
   isRequiredBeforeStageId: uuid.nullable(),
   appliesTo: optText(200),
-  conditions: z.record(z.string(), z.unknown()).nullable(),
+  conditions: requirementConditionsSchema.nullable(),
 }).partial().strict();
 export const requirementListQuerySchema = z.object({ fileType: z.enum(FILE_TYPES).optional() });

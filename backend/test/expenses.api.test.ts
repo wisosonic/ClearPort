@@ -189,6 +189,27 @@ describe('expenses API', () => {
     });
   });
 
+  describe('segregation of duties', () => {
+    it('lets an office require that someone else approves what a person recorded', async () => {
+      const own = await ok(exp(A.accountant, { categoryId: A.cat[CAT.OFFICE], description: 'Own cost', amount: '10' }));
+      const byOfficer = await ok(portFee({ description: 'Officer cost' }));
+      // default: an office keeps working as before
+      expect((await approve(A.accountant, own.id)).status).toBe(200);
+
+      expect((await api.req('patch', '/tenant', A.owner).send({ allowSelfApproval: false })).body.data.allowSelfApproval).toBe(false);
+      const own2 = await ok(exp(A.accountant, { categoryId: A.cat[CAT.OFFICE], description: 'Own cost 2', amount: '10' }));
+      const refused = await approve(A.accountant, own2.id);
+      expect(refused.status).toBe(403);
+      expect(refused.body.error.code).toBe('SELF_APPROVAL_NOT_ALLOWED');
+      expect((await ok(api.req('get', `/expenses/${own2.id}`, A.accountant))).status).toBe('DRAFT');
+      expect((await approve(A.accountant, byOfficer.id)).status).toBe(200); // someone else's expense
+      expect((await approve(A.owner, own2.id)).status).toBe(200); // another approver
+
+      await api.req('patch', '/tenant', A.owner).send({ allowSelfApproval: true });
+      expect((await api.req('patch', '/tenant', A.accountant).send({ allowSelfApproval: false })).status).toBe(403); // needs settings.manage
+    });
+  });
+
   describe('paying a payable later', () => {
     it('settles at the same value with no FX difference when the rate has not moved', async () => {
       const e = await ok(portFee({ amount: '120' }));

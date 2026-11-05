@@ -8,7 +8,7 @@ import { AccountingService } from './accounting.service';
 import { FinanceSetupService } from './finance-setup.service';
 import {
   createAccountSchema, createCashAccountSchema, createCategorySchema, createJournalSchema, createRateSchema,
-  journalListQuerySchema, latestRateQuerySchema, rateListQuerySchema, reverseJournalSchema, taxSettingsSchema,
+  journalListQuerySchema, latestRateQuerySchema, rateListQuerySchema, reverseJournalSchema, revaluationSchema, taxSettingsSchema,
   trialBalanceQuerySchema, updateAccountSchema, updateCashAccountSchema, updateCategorySchema,
 } from './finance.schemas';
 import { RatesService } from './rates.service';
@@ -27,6 +27,12 @@ export class FinanceSetupController {
   @Get('currencies')
   currencies() {
     return this.rates.currencies();
+  }
+
+  @Authenticated()
+  @Get('payment-methods')
+  paymentMethods() {
+    return this.setup.paymentMethods();
   }
 
   @Authenticated()
@@ -137,6 +143,14 @@ export class AccountingController {
     @Body(new ZodPipe(reverseJournalSchema)) body: z.infer<typeof reverseJournalSchema>, @ReqMeta() meta: RequestMeta,
   ) {
     return this.accounting.reverseManual(auth, entryId, body.reason, meta);
+  }
+
+  /** Period-end revaluation of foreign-currency balances (unrealised FX gain / loss). */
+  @RequirePermissions('accounting.post')
+  @HttpCode(200)
+  @Post('accounting/revaluation')
+  revalue(@CurrentAuth() auth: AuthContext, @Body(new ZodPipe(revaluationSchema)) body: z.infer<typeof revaluationSchema>, @ReqMeta() meta: RequestMeta) {
+    return this.accounting.revalue(auth, { asOf: body.asOf ?? new Date(), preview: body.preview }, meta);
   }
 
   @RequirePermissions('accounting.view')

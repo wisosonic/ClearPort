@@ -61,6 +61,7 @@ beforeEach(() => {
     if (path.endsWith('/summary')) return ok({ counts: { shipments: 1, containers: 1, goodsLines: 1, documents: 0, openTasks: 0 } });
     if (path === '/ports') return ok([{ id: 'p1', code: 'CNSHA', name: 'Shanghai', countryCode: 'CN' }, { id: 'p2', code: 'LBBEY', name: 'Beirut', countryCode: 'LB' }], { page: 1, limit: 25, total: 2 });
     if (path === '/currencies') return ok([{ code: 'USD' }, { code: 'LBP' }, { code: 'EUR' }]);
+    if (method === 'DELETE') return res(204, null);
     if (method === 'POST' || method === 'PATCH') return ok({ id: 'new' });
     return fail(404, 'NOT_FOUND', 'no route');
   }));
@@ -144,6 +145,34 @@ describe('shipments tab', () => {
     await waitFor(() => expect(sent('PATCH', '/containers/ct1')).toHaveLength(1));
     expect(sent('PATCH', '/containers/ct1')[0].body).toMatchObject({ status: 'RELEASED', packageCount: 10, netWeight: null });
     expect(sent('PATCH', '/containers/ct1')[0].body).not.toHaveProperty('containerNumber'); // unchanged, so not re-validated
+  });
+
+  it('removes a container, a goods line or the whole shipment only after confirming', async () => {
+    const user = await open();
+    const row = (await screen.findByText('CSQU3054383')).closest('tr')!;
+    await user.click(within(row).getByRole('button', { name: 'Remove CSQU3054383' }));
+    expect(sent('DELETE', '/containers/ct1')).toHaveLength(0);
+    await user.click(within(screen.getByText('Remove container CSQU3054383?').parentElement!).getByRole('button', { name: 'Remove' }));
+    await waitFor(() => expect(sent('DELETE', '/containers/ct1')).toHaveLength(1));
+
+    const goods = screen.getByText('Cotton fabric').closest('tr')!;
+    await user.click(within(goods).getByRole('button', { name: 'Remove Cotton fabric' }));
+    await user.click(within(screen.getByText('Remove this goods line?').parentElement!).getByRole('button', { name: 'Remove' }));
+    await waitFor(() => expect(sent('DELETE', '/goods/g1')).toHaveLength(1));
+
+    await user.click(screen.getByRole('button', { name: 'Remove MSC Anna' }));
+    expect(screen.getByText((text) => text.startsWith('Remove this shipment with its 1 container(s) and 1 goods line(s)'))).toBeInTheDocument();
+    await user.click(within(screen.getByText(/Remove this shipment with its/).parentElement!).getByRole('button', { name: 'Remove' }));
+    await waitFor(() => expect(sent('DELETE', '/shipments/sh1')).toHaveLength(1));
+  });
+
+  it('shows why a removal was refused', async () => {
+    failNext['DELETE /containers/ct1'] = fail(409, 'FILE_NOT_EDITABLE', 'This file is closed');
+    const user = await open();
+    const row = (await screen.findByText('CSQU3054383')).closest('tr')!;
+    await user.click(within(row).getByRole('button', { name: 'Remove CSQU3054383' }));
+    await user.click(within(screen.getByText('Remove container CSQU3054383?').parentElement!).getByRole('button', { name: 'Remove' }));
+    expect(await screen.findByText('This file is closed')).toBeInTheDocument();
   });
 
   it('adds goods: asks for a description, lets the server compute the total, and needs a currency for prices', async () => {

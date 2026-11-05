@@ -281,3 +281,14 @@ adding and editing needs `clients.manage`. There is no deactivate or delete (the
 ## Loading
 
 Every screen except the dashboard and login is loaded on first visit (route-level `lazy` in `app/router.tsx`), and React and the other libraries are separate cached chunks. The app's own first download is about 90 kB. Add new screens through `lazyPage(permissions, () => import(...))`.
+
+## Recent additions
+
+* **Removing by mistake:** on a file's Shipments tab, a shipment, container or goods line can be removed after an inline confirmation (open files only;
+  removing a shipment removes what is on it).
+* **Settings → Office:** "Someone else must approve an expense" switches off self-approval; the API then refuses with its own message.
+* **Accounting → Exchange rates:** a *Revalue foreign balances* card (needs `accounting.post`). Preview shows each foreign balance, what the ledger carries
+  and what it is worth at the rates on file; posting books the difference as one entry. Run it at each period end.
+* **Payments:** the method list comes from `GET /payment-methods`; an advance can name the open advance invoice it answers (same client and currency).
+* **Required documents:** a requirement can be limited to some files (shipment by sea/air/land/other, with or without containers, priority, company or
+  individual client); leaving everything empty asks for it on every file of the type. The file's checklist only lists the requirements that apply to it.

@@ -20,6 +20,11 @@ export class FinanceSetupService {
     @Inject(AuditService) private readonly audit: AuditService,
   ) {}
 
+  /** The ways a payment can be made (the same list the payment form validates against). */
+  paymentMethods() {
+    return this.db.client.paymentMethod.findMany({ where: { isActive: true }, orderBy: { code: 'asc' }, select: { code: true, nameEn: true, nameAr: true } });
+  }
+
   // ── tax: configured per office, never hardcoded (spec section 4) ──
 
   async getTax(): Promise<TaxSettings> {

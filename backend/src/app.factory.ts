@@ -18,6 +18,7 @@ export async function createApp(env: Env): Promise<INestApplication> {
     logger: env.NODE_ENV === 'test' ? ['error'] : ['log', 'warn', 'error'],
   });
   app.setGlobalPrefix(API_PREFIX);
+  if (env.TRUST_PROXY > 0) app.set('trust proxy', env.TRUST_PROXY);
   app.use(helmet());
   app.useBodyParser('json', { limit: '1mb' });
 

@@ -26,7 +26,7 @@ const TEMPLATES = [
 ];
 const REQS = [
   { id: 'r1', fileType: 'IMPORT', documentTypeId: 'dt1', isRequired: true, isRequiredBeforeStageId: null, appliesTo: null, documentType: TYPES[0], requiredBefore: null },
-  { id: 'r2', fileType: 'IMPORT', documentTypeId: 'dt2', isRequired: true, isRequiredBeforeStageId: 's2', appliesTo: 'Sea shipments only', documentType: TYPES[1], requiredBefore: { id: 's2', code: 'CUSTOMS', nameEn: 'Customs review', nameAr: 'المعاينة' } },
+  { id: 'r2', fileType: 'IMPORT', documentTypeId: 'dt2', isRequired: true, isRequiredBeforeStageId: 's2', appliesTo: 'Sea shipments only', documentType: TYPES[1], requiredBefore: { id: 's2', code: 'CUSTOMS', nameEn: 'Customs review', nameAr: 'المعاينة' }, conditions: { shipmentType: ['SEA'], hasContainers: true } },
   { id: 'r3', fileType: 'EXPORT', documentTypeId: 'dt3', isRequired: false, isRequiredBeforeStageId: null, appliesTo: null, documentType: TYPES[2], requiredBefore: null },
 ];
 
@@ -143,6 +143,34 @@ describe('required documents', () => {
     expect(within(bl).getByText('Customs review')).toBeInTheDocument();
     expect(within(bl).getByText('Sea shipments only')).toBeInTheDocument();
     expect(within(screen.getByText('Health certificate').closest('tr')!).getByText('Optional')).toBeInTheDocument();
+  });
+
+  it('asks only for some files: conditions are shown, sent when set, and cleared with null', async () => {
+    const user = await open('Required documents');
+    const bl = (await screen.findByText('Bill of lading')).closest('tr')!;
+    expect(within(bl).getByText('Only shipments by Sea · File has containers')).toBeInTheDocument();
+    await user.click(within(bl).getByRole('button', { name: 'Edit Bill of lading' }));
+    const form = (await screen.findByRole('heading', { name: 'Edit requirement' })).closest('form')!;
+    expect(within(form).getByLabelText('Sea')).toBeChecked();
+    expect(within(form).getByLabelText('Containers')).toHaveValue('yes');
+    await user.click(within(form).getByLabelText('Sea')); // untick
+    await user.selectOptions(within(form).getByLabelText('Containers'), 'any');
+    await user.click(within(form).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(sent('PATCH', '/document-requirements/r2')).toHaveLength(1));
+    expect(sent('PATCH', '/document-requirements/r2')[0].body).toMatchObject({ conditions: null });
+  });
+
+  it('adds a requirement with conditions only when some are chosen', async () => {
+    const user = await open('Required documents');
+    await user.click(await screen.findByRole('button', { name: 'Add requirement' }));
+    const form = (await screen.findByRole('heading', { name: 'Add requirement', level: 2 })).closest('form')!;
+    await user.selectOptions(within(form).getByLabelText('Document type'), 'dt3');
+    await user.click(within(form).getByLabelText('Urgent'));
+    await user.click(within(form).getByLabelText('High'));
+    await user.selectOptions(within(form).getByLabelText('Client is'), 'COMPANY');
+    await user.click(within(form).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(sent('POST', '/document-requirements')).toHaveLength(1));
+    expect(sent('POST', '/document-requirements')[0].body).toMatchObject({ conditions: { priority: ['HIGH', 'URGENT'], clientType: 'COMPANY' } });
   });
 
   it('adds a requirement: the stages offered belong to that kind of file, the workflow in use first', async () => {

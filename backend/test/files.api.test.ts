@@ -289,6 +289,9 @@ describe('clearance files API', () => {
         expect(res.body.error.code).toBe(code);
       };
       await bad({ shippingAgentId: '00000000-0000-4000-8000-000000000000' }, 'PARTY_NOT_FOUND');
+      const forwarder = (await ok(api.req('post', '/parties', A).send({ name: 'Fast Forwarding', partyType: 'FREIGHT_FORWARDER' }))).id;
+      await bad({ shippingAgentId: forwarder }, 'PARTY_WRONG_KIND'); // a forwarder is not a shipping agent
+      await bad({ freightForwarderId: agentId }, 'PARTY_WRONG_KIND');
       await bad({ originPortId: '00000000-0000-4000-8000-000000000000' }, 'PORT_NOT_FOUND');
       await bad({ etd: '2026-11-20T00:00:00Z', eta: '2026-11-01T00:00:00Z' }, 'ETA_BEFORE_ETD');
       const upd = await api.req('patch', `/shipments/${shipment.id}`, A).send({ eta: '2026-10-01T00:00:00Z' }); // before stored ETD
@@ -388,6 +391,40 @@ describe('clearance files API', () => {
       const times = page1.body.data.map((t: any) => new Date(t.createdAt).getTime());
       expect([...times].sort((a, b) => b - a)).toEqual(times);
       expect(page1.body.data[0].user).toMatchObject({ firstName: 'Owner' });
+    });
+  });
+
+  describe('removing shipments, containers and goods', () => {
+    it('removes a container or goods line, then a whole shipment with what is on it, keeping an audit trail', async () => {
+      const fid = (await ok(mkFile(A))).id;
+      const sh = await ok(api.req('post', `/clearance-files/${fid}/shipments`, A).send({ vesselName: 'Mistake' }));
+      const c1 = await ok(api.req('post', `/shipments/${sh.id}/containers`, A).send({ containerNumber: cn('MSCU123456'), containerType: '40HC' }));
+      await ok(api.req('post', `/shipments/${sh.id}/containers`, A).send({ containerNumber: cn('TEMU765432'), containerType: '40HC' }));
+      const g1 = await ok(api.req('post', `/shipments/${sh.id}/goods`, A).send({ description: 'Tiles' }));
+      await ok(api.req('post', `/shipments/${sh.id}/goods`, A).send({ description: 'Pallets' }));
+
+      expect((await api.req('delete', `/containers/${c1.id}`, viewer)).status).toBe(403);
+      expect((await api.req('delete', `/containers/${c1.id}`, A)).status).toBe(204);
+      expect((await api.req('delete', `/containers/${c1.id}`, A)).status).toBe(404);
+      expect((await api.req('delete', `/goods/${g1.id}`, A)).status).toBe(204);
+      expect((await ok(api.req('get', `/shipments/${sh.id}`, A))).containers).toHaveLength(1);
+      expect((await ok(api.req('get', `/shipments/${sh.id}`, A))).goodsItems).toHaveLength(1);
+
+      expect((await api.req('delete', `/shipments/${sh.id}`, B)).status).toBe(404); // another office
+      expect((await api.req('delete', `/shipments/${sh.id}`, A)).status).toBe(204);
+      expect((await api.req('get', `/shipments/${sh.id}`, A)).status).toBe(404);
+      expect(await api.prisma.container.count({ where: { shipmentId: sh.id } })).toBe(0);
+      expect(await api.prisma.goodsItem.count({ where: { shipmentId: sh.id } })).toBe(0);
+      expect(await api.prisma.auditLog.count({ where: { entityId: sh.id, action: 'SHIPMENT_DELETED' } })).toBe(1);
+      expect(await api.prisma.auditLog.count({ where: { entityId: c1.id, action: 'CONTAINER_DELETED' } })).toBe(1);
+    });
+
+    it('cannot change a shipments of a closed file', async () => {
+      const fid = (await ok(mkFile(A))).id;
+      const sh = await ok(api.req('post', `/clearance-files/${fid}/shipments`, A).send({ vesselName: 'Keep' }));
+      await api.prisma.clearanceFile.update({ where: { id: fid }, data: { status: 'CLOSED' } });
+      expect((await api.req('delete', `/shipments/${sh.id}`, A)).status).toBeGreaterThanOrEqual(400);
+      expect((await api.req('get', `/shipments/${sh.id}`, A)).status).toBe(200);
     });
   });
 

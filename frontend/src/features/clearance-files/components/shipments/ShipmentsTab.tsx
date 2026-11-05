@@ -9,6 +9,7 @@ import { useAuth } from '@/features/auth/auth';
 import { Alert, Badge, Button, Card, EmptyState, ErrorState, Spinner, Td, Th } from '@/components/ui/primitives';
 import type { FileDetail } from '../../lib';
 import { ContainerForm, GoodsForm, ShipmentForm } from './forms';
+import { RemoveControl } from './RemoveControl';
 import type { Shipment, ShipmentDetail } from './types';
 
 const containerTone = { PLANNED: 'neutral', AT_PORT: 'blue', RELEASED: 'amber', DELIVERED: 'green', RETURNED: 'green' } as const;
@@ -33,7 +34,12 @@ function ShipmentCard({ file, shipment, editable }: { file: FileDetail; shipment
           <h3 className="font-semibold" dir="auto">{t(`files.shipmentTypes.${s.shipmentType}`)}{s.vesselName ? ` · ${s.vesselName}` : ''}{s.voyageNumber ? ` / ${s.voyageNumber}` : ''}</h3>
           <p className="text-xs text-slate-500">{s._count.containers} {t('ship.containers').toLowerCase()} · {s._count.goodsItems} {t('ship.goods').toLowerCase()}</p>
         </div>
-        {editable && mode !== 'edit-shipment' && <Button variant="secondary" onClick={() => setMode('edit-shipment')}>{t('common.edit')}</Button>}
+        {editable && mode !== 'edit-shipment' && (
+          <div className="flex flex-wrap items-start gap-2">
+            <Button variant="secondary" onClick={() => setMode('edit-shipment')}>{t('common.edit')}</Button>
+            <RemoveControl fileId={file.id} path={`/shipments/${s.id}`} label={s.vesselName ?? t(`files.shipmentTypes.${s.shipmentType}`)} question={t('ship.removeShipmentQuestion', { containers: s._count.containers, goods: s._count.goodsItems })} />
+          </div>
+        )}
       </div>
 
       {mode === 'edit-shipment' ? <ShipmentForm fileId={file.id} shipment={s} onDone={done} /> : (
@@ -78,7 +84,7 @@ function ShipmentCard({ file, shipment, editable }: { file: FileDetail; shipment
                         <Td dir="ltr">{c.grossWeight ? formatNumber(c.grossWeight, locale) : '—'}</Td>
                         <Td>{c.packageCount ?? '—'}</Td>
                         <Td><Badge tone={containerTone[c.status as keyof typeof containerTone] ?? 'neutral'}>{t(`ship.containerStatuses.${c.status}`)}</Badge></Td>
-                        {editable && <Td><Button variant="ghost" onClick={() => setMode({ container: c.id })}>{t('common.edit')}</Button></Td>}
+                        {editable && <Td><div className="flex flex-wrap items-start gap-1"><Button variant="ghost" onClick={() => setMode({ container: c.id })}>{t('common.edit')}</Button><RemoveControl fileId={file.id} path={`/containers/${c.id}`} label={c.containerNumber} question={t('ship.removeContainerQuestion', { number: c.containerNumber })} /></div></Td>}
                       </tr>
                     )))}
                   </tbody>
@@ -107,7 +113,7 @@ function ShipmentCard({ file, shipment, editable }: { file: FileDetail; shipment
                         <Td dir="ltr">{g.quantity ? `${formatNumber(g.quantity, locale)} ${g.unitOfMeasure ?? ''}` : '—'}</Td>
                         <Td dir="ltr">{formatMoney(g.unitPrice, g.currencyCode ?? undefined, locale)}</Td>
                         <Td dir="ltr" className="font-medium">{formatMoney(g.lineTotal, g.currencyCode ?? undefined, locale)}</Td>
-                        {editable && <Td><Button variant="ghost" onClick={() => setMode({ goods: g.id })}>{t('common.edit')}</Button></Td>}
+                        {editable && <Td><div className="flex flex-wrap items-start gap-1"><Button variant="ghost" onClick={() => setMode({ goods: g.id })}>{t('common.edit')}</Button><RemoveControl fileId={file.id} path={`/goods/${g.id}`} label={g.description} question={t('ship.removeGoodsQuestion')} /></div></Td>}
                       </tr>
                     )))}
                   </tbody>

@@ -9,6 +9,7 @@ import { PrismaService, TenantDbService } from '../../database/prisma.module';
 import { requireTenant, runWithTenant } from '../../database/tenant-context';
 import { detectFile, safeFilename } from '../../infrastructure/storage/file-signature';
 import { LocalStorageService } from '../../infrastructure/storage/local-storage.service';
+import { MalwareScanner, ScannerUnavailableError } from '../../infrastructure/storage/malware-scanner';
 import { AuditService } from '../audit/audit.service';
 import type { AuthContext, RequestMeta } from '../auth/auth.types';
 import { TokenService } from '../auth/token.service';
@@ -47,6 +48,7 @@ export class DocumentsService {
     @Inject(ActivityService) private readonly activity: ActivityService,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(LocalStorageService) private readonly storage: LocalStorageService,
+    @Inject(MalwareScanner) private readonly scanner: MalwareScanner,
     @Inject(TokenService) private readonly tokens: TokenService,
     @Inject(ENV) private readonly env: Env,
   ) {}
@@ -150,6 +152,13 @@ export class DocumentsService {
     const detected = await detectFile(upload.path, original);
     if (!detected.ok) {
       throw new DomainError(detected.reason === 'UNSUPPORTED_CONTENT' ? 'UNSUPPORTED_FILE_TYPE' : 'FILE_TYPE_MISMATCH', detected.detail, 415);
+    }
+    try {
+      const scan = await this.scanner.scan(upload.path);
+      if (!scan.clean) throw new DomainError('MALWARE_DETECTED', `The file was rejected: it contains ${scan.signature}`, 422);
+    } catch (e) {
+      if (e instanceof ScannerUnavailableError) throw new DomainError('SCANNER_UNAVAILABLE', e.message, 503);
+      throw e;
     }
     const { checksum, size } = await this.storage.fingerprint(upload.path);
     const key = this.storage.buildKey(tenantId, fileId, documentId, version);

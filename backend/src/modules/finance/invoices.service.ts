@@ -139,8 +139,15 @@ export class InvoicesService {
         where: { invoiceId: { in: ids }, reversedAt: null, payment: { status: 'POSTED' } }, select: { invoiceId: true, allocatedAmount: true },
       })
       : [];
+    // an ADVANCE invoice is answered by advance payments received against it (no allocation, no ledger effect)
+    const advancePays = ids.length
+      ? await this.db.client.payment.findMany({ where: { advanceInvoiceId: { in: ids }, status: 'POSTED' }, select: { advanceInvoiceId: true, amount: true } })
+      : [];
     return invoices.map((i) => {
-      const paid = sum(allocs.filter((a) => a.invoiceId === i.id).map((a) => a.allocatedAmount));
+      const paid = sum([
+        ...allocs.filter((a) => a.invoiceId === i.id).map((a) => a.allocatedAmount),
+        ...advancePays.filter((p) => p.advanceInvoiceId === i.id).map((p) => p.amount),
+      ]);
       const outstanding = i.status === 'ISSUED' ? sub(i.totalAmount, paid) : i.status === 'DRAFT' ? i.totalAmount : ZERO;
       const paymentStatus = i.status !== 'ISSUED' ? null : compare(outstanding, ZERO) <= 0 ? 'PAID' : compare(paid, ZERO) > 0 ? 'PARTIALLY_PAID' : 'UNPAID';
       return {

@@ -43,6 +43,12 @@ describe('finance foundations API', () => {
       expect(cur.find((c: any) => c.code === 'LBP')).toMatchObject({ decimalPlaces: 0 });
     });
 
+    it('lists the payment methods with both names', async () => {
+      const methods = await ok(api.req('get', '/payment-methods', viewer));
+      expect(methods.map((m: any) => m.code)).toEqual(['BANK_TRANSFER', 'CARD', 'CASH', 'CHEQUE', 'OTHER']);
+      expect(methods.find((m: any) => m.code === 'CASH')).toEqual({ code: 'CASH', nameEn: 'Cash', nameAr: 'نقداً' });
+    });
+
     it('stores LBP as foreign-per-base (exact) and EUR as base-per-foreign by default', async () => {
       const lbp = await ok(rate(accountant, { currency: 'LBP', rate: '89500', effectiveAt: '2026-10-01T00:00:00Z', source: 'sayrafa' }));
       expect(lbp).toMatchObject({ fromCurrency: 'LBP', toCurrency: 'USD', rate: '89500.0000000000', convention: 'FOREIGN_PER_BASE', source: 'sayrafa' });

@@ -7,6 +7,7 @@ import { formatDate, type Locale } from '@/lib/format';
 import { can } from '@/lib/permissions';
 import { useAuth } from '@/features/auth/auth';
 import type { Currency } from '@/features/clearance-files/components/invoices/types';
+import { RevaluationCard } from './RevaluationCard';
 import { Alert, Button, Card, EmptyState, ErrorState, Field, Input, Select, Spinner, Td, Th } from '@/components/ui/primitives';
 
 interface Rate { id: string; fromCurrency: string; toCurrency: string; rate: string; convention: 'BASE_PER_FOREIGN' | 'FOREIGN_PER_BASE'; effectiveAt: string; source: string | null }
@@ -103,6 +104,7 @@ export function RatesTab({ baseCurrency }: { baseCurrency: string }) {
           </div>
         ))}
       </Card>
+      {canPost && <RevaluationCard />}
     </div>
   );
 }

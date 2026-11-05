@@ -10,8 +10,21 @@ import type { Template } from './WorkflowEditor';
 
 interface Requirement {
   id: string; fileType: 'IMPORT' | 'EXPORT' | 'OTHER'; documentTypeId: string; isRequired: boolean; isRequiredBeforeStageId: string | null; appliesTo: string | null;
+  conditions?: Conditions | null;
   documentType: { id: string; code: string; nameEn: string; nameAr: string }; requiredBefore: { id: string; code: string; nameEn: string; nameAr: string | null } | null;
 }
+/** When a requirement applies; the API checks every key that is present against the file. */
+interface Conditions { shipmentType?: string[]; hasContainers?: boolean; priority?: string[]; clientType?: 'COMPANY' | 'INDIVIDUAL' }
+const SHIPMENT_TYPES = ['SEA', 'AIR', 'LAND', 'OTHER'] as const;
+const PRIORITIES = ['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const;
+const clean = (c: Conditions | null | undefined): Conditions | null => {
+  const out: Conditions = {};
+  if (c?.shipmentType?.length) out.shipmentType = [...c.shipmentType].sort();
+  if (c?.hasContainers !== undefined) out.hasContainers = c.hasContainers;
+  if (c?.priority?.length) out.priority = [...c.priority].sort();
+  if (c?.clientType) out.clientType = c.clientType;
+  return Object.keys(out).length ? out : null;
+};
 const TYPES = ['IMPORT', 'EXPORT', 'OTHER'] as const;
 const errText = (e: unknown, fallback: string) => (e instanceof ApiError ? e.message : fallback);
 const name = (x: { nameEn: string; nameAr: string | null }, locale: Locale) => (locale === 'ar' && x.nameAr ? x.nameAr : x.nameEn);
@@ -32,13 +45,19 @@ function RequirementForm({ req, onDone }: { req?: Requirement; onDone: () => voi
   const [required, setRequired] = useState(req?.isRequired ?? true);
   const [stageId, setStageId] = useState(req?.isRequiredBeforeStageId ?? '');
   const [appliesTo, setAppliesTo] = useState(req?.appliesTo ?? '');
+  const [shipTypes, setShipTypes] = useState<string[]>(req?.conditions?.shipmentType ?? []);
+  const [containers, setContainers] = useState<'any' | 'yes' | 'no'>(req?.conditions?.hasContainers === undefined ? 'any' : req.conditions.hasContainers ? 'yes' : 'no');
+  const [priorities, setPriorities] = useState<string[]>(req?.conditions?.priority ?? []);
+  const [clientType, setClientType] = useState<string>(req?.conditions?.clientType ?? '');
   const [touched, setTouched] = useState(false);
   const types = useQuery({ queryKey: ['document-types'], queryFn: () => api.get<DocType[]>('/document-types') });
   const stages = useStages(fileType);
+  const conditions = clean({ shipmentType: shipTypes, hasContainers: containers === 'any' ? undefined : containers === 'yes', priority: priorities, clientType: (clientType || undefined) as Conditions['clientType'] });
+  const conditionsChanged = JSON.stringify(conditions) !== JSON.stringify(clean(req?.conditions));
   const save = useMutation({
     mutationFn: () => (req
-      ? api.patch(`/document-requirements/${req.id}`, { isRequired: required, isRequiredBeforeStageId: stageId || null, appliesTo: appliesTo.trim() || null })
-      : api.post('/document-requirements', { fileType, documentTypeId: typeId, isRequired: required, ...(stageId ? { isRequiredBeforeStageId: stageId } : {}), ...(appliesTo.trim() ? { appliesTo: appliesTo.trim() } : {}) })),
+      ? api.patch(`/document-requirements/${req.id}`, { isRequired: required, isRequiredBeforeStageId: stageId || null, appliesTo: appliesTo.trim() || null, ...(conditionsChanged ? { conditions } : {}) })
+      : api.post('/document-requirements', { fileType, documentTypeId: typeId, isRequired: required, ...(stageId ? { isRequiredBeforeStageId: stageId } : {}), ...(appliesTo.trim() ? { appliesTo: appliesTo.trim() } : {}), ...(conditions ? { conditions } : {}) })),
     onSuccess: async () => { await qc.invalidateQueries({ queryKey: ['document-requirements'] }); await qc.invalidateQueries({ queryKey: ['file-checklist'] }); onDone(); },
   });
   return (
@@ -64,6 +83,30 @@ function RequirementForm({ req, onDone }: { req?: Requirement; onDone: () => voi
           </Field>
           <Field label={t('reqs.appliesTo')} htmlFor="rq-applies" hint={t('reqs.appliesToHint')}><Input id="rq-applies" dir="auto" value={appliesTo} onChange={(e) => setAppliesTo(e.target.value)} /></Field>
         </div>
+        <fieldset className="space-y-3 rounded-md border border-slate-200 p-3">
+          <legend className="px-1 text-xs font-medium text-slate-600">{t('reqs.cond.title')}</legend>
+          <p className="text-xs text-slate-500">{t('reqs.cond.hint')}</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <span className="text-slate-600">{t('reqs.cond.shipmentType')}</span>
+            {SHIPMENT_TYPES.map((x) => <label key={x} className="flex items-center gap-1"><input type="checkbox" checked={shipTypes.includes(x)} onChange={(e) => setShipTypes(e.target.checked ? [...shipTypes, x] : shipTypes.filter((v) => v !== x))} />{t(`files.shipmentTypes.${x}`)}</label>)}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <span className="text-slate-600">{t('reqs.cond.priority')}</span>
+            {PRIORITIES.map((x) => <label key={x} className="flex items-center gap-1"><input type="checkbox" checked={priorities.includes(x)} onChange={(e) => setPriorities(e.target.checked ? [...priorities, x] : priorities.filter((v) => v !== x))} />{t(`files.priorities.${x}`)}</label>)}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label={t('reqs.cond.containers')} htmlFor="rq-containers">
+              <Select id="rq-containers" value={containers} onChange={(e) => setContainers(e.target.value as 'any' | 'yes' | 'no')}>
+                <option value="any">{t('reqs.cond.any')}</option><option value="yes">{t('reqs.cond.withContainers')}</option><option value="no">{t('reqs.cond.withoutContainers')}</option>
+              </Select>
+            </Field>
+            <Field label={t('reqs.cond.clientType')} htmlFor="rq-client-type">
+              <Select id="rq-client-type" value={clientType} onChange={(e) => setClientType(e.target.value)}>
+                <option value="">{t('reqs.cond.any')}</option><option value="COMPANY">{t('clients.types.COMPANY')}</option><option value="INDIVIDUAL">{t('clients.types.INDIVIDUAL')}</option>
+              </Select>
+            </Field>
+          </div>
+        </fieldset>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={required} onChange={(e) => setRequired(e.target.checked)} />{t('reqs.mandatory')}</label>
         {req && <p className="text-xs text-slate-500">{t('reqs.fixed')}</p>}
         <div className="flex gap-2">
@@ -74,6 +117,13 @@ function RequirementForm({ req, onDone }: { req?: Requirement; onDone: () => voi
     </Card>
   );
 }
+
+const conditionText = (c: Conditions, t: (k: string, o?: Record<string, unknown>) => string) => [
+  c.shipmentType && t('reqs.cond.sumShipment', { list: c.shipmentType.map((x) => t(`files.shipmentTypes.${x}`)).join(', ') }),
+  c.hasContainers !== undefined && t(c.hasContainers ? 'reqs.cond.withContainers' : 'reqs.cond.withoutContainers'),
+  c.priority && t('reqs.cond.sumPriority', { list: c.priority.map((x) => t(`files.priorities.${x}`)).join(', ') }),
+  c.clientType && t('reqs.cond.sumClient', { type: t(`clients.types.${c.clientType}`) }),
+].filter(Boolean).join(' · ');
 
 function RequirementRow({ r, onEdit }: { r: Requirement; onEdit: () => void }) {
   const { t, i18n } = useTranslation();
@@ -90,7 +140,7 @@ function RequirementRow({ r, onEdit }: { r: Requirement; onEdit: () => void }) {
   return (
     <>
       <tr>
-        <Td dir="auto" className="font-medium">{label}{r.appliesTo && <span className="block text-xs text-slate-500">{r.appliesTo}</span>}</Td>
+        <Td dir="auto" className="font-medium">{label}{r.appliesTo && <span className="block text-xs text-slate-500">{r.appliesTo}</span>}{clean(r.conditions) && <span className="block text-xs text-slate-500">{conditionText(clean(r.conditions)!, t)}</span>}</Td>
         <Td><Badge tone={r.isRequired ? 'amber' : 'neutral'}>{r.isRequired ? t('docs.required') : t('docs.optional')}</Badge></Td>
         <Td>{r.requiredBefore ? t('reqs.beforeNamed', { stage: name(r.requiredBefore, locale) }) : t('reqs.beforeFinished')}</Td>
         <Td>

@@ -67,6 +67,12 @@ beforeEach(() => {
     if (path.endsWith('/summary')) return ok({ counts: { shipments: 0, containers: 0, goodsLines: 0, documents: 0, openTasks: 0 } });
     if (path === '/payments' && method === 'GET') return ok(payments, { page: 1, limit: 20, total: payments.length });
     if (path === '/payments/p1' && method === 'GET') return ok(detail);
+    if (path === '/invoices' && method === 'GET') return ok([
+      { id: 'ad1', invoiceNumber: 'INV-2026-00007', invoiceType: 'ADVANCE', currencyCode: 'USD', outstandingAmount: '500.0000', status: 'ISSUED' },
+      { id: 'ad2', invoiceNumber: 'INV-2026-00008', invoiceType: 'ADVANCE', currencyCode: 'LBP', outstandingAmount: '9000000.0000', status: 'ISSUED' },
+      { id: 'ad3', invoiceNumber: 'INV-2026-00009', invoiceType: 'ADVANCE', currencyCode: 'USD', outstandingAmount: '0.0000', status: 'ISSUED' },
+    ], { page: 1, limit: 50, total: 3 });
+    if (path === '/payment-methods') return ok([{ code: 'CASH', nameEn: 'Cash', nameAr: 'نقداً' }, { code: 'WIRE', nameEn: 'Wire (new)', nameAr: 'حوالة' }]);
     if (path === '/clearance-files/f1/invoices') return ok(OPEN_INV, { page: 1, limit: 100, total: OPEN_INV.length });
     if (path === '/currencies') return ok([{ code: 'USD', name: 'US dollar', decimalPlaces: 2 }, { code: 'LBP', name: 'Lebanese pound', decimalPlaces: 0 }]);
     if (path === '/cash-accounts') return ok(ACCOUNTS);
@@ -129,6 +135,28 @@ describe('recording', () => {
     expect(sent('POST', '/payments')[0].body).toMatchObject({
       clientId: 'c1', clearanceFileId: 'f1', paymentType: 'CLIENT_PAYMENT', amount: '250.5', currencyCode: 'USD', cashAccountId: 'ca1', paymentMethod: 'CASH', referenceNumber: 'CHQ 1042',
     });
+  });
+
+  it('lists the payment methods from the API, including ones the interface has no name for', async () => {
+    const user = await open();
+    const form = await recordForm(user);
+    const method = within(form).getByLabelText('Method');
+    await waitFor(() => expect(within(method).getByRole('option', { name: 'Wire (new)' })).toBeInTheDocument());
+  });
+
+  it('lets an advance answer an open advance invoice of the same currency', async () => {
+    const user = await open();
+    const form = await recordForm(user);
+    expect(within(form).queryByLabelText('Answers advance invoice')).not.toBeInTheDocument(); // not for a normal payment
+    await user.selectOptions(within(form).getByLabelText('Type'), 'CLIENT_ADVANCE');
+    const pick = await within(form).findByLabelText('Answers advance invoice');
+    expect(within(pick).getAllByRole('option').map((o) => o.textContent)).toEqual(['—', 'INV-2026-00007 · 500.0000 USD']); // not LBP, not settled
+    await user.selectOptions(pick, 'ad1');
+    await waitFor(() => expect((within(form).getByLabelText('Cash or bank account') as HTMLSelectElement).value).toBe('ca1'));
+    await user.type(within(form).getByLabelText('Amount'), '500');
+    await user.click(within(form).getByRole('button', { name: 'Record payment' }));
+    await waitFor(() => expect(sent('POST', '/payments')).toHaveLength(1));
+    expect(sent('POST', '/payments')[0].body).toMatchObject({ paymentType: 'CLIENT_ADVANCE', advanceInvoiceId: 'ad1' });
   });
 
   it('switching currency changes the accounts offered', async () => {

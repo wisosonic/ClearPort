@@ -89,7 +89,7 @@ describe('security review', () => {
       const authed = routes.filter((r) => r.kind === 'authenticated').map(label).sort();
       expect(authed).toEqual([
         'GET /api/v1/auth/me', 'GET /api/v1/branches', 'GET /api/v1/currencies', 'GET /api/v1/exchange-rates',
-        'GET /api/v1/exchange-rates/latest', 'GET /api/v1/financial-categories', 'GET /api/v1/settings/tax', 'GET /api/v1/tenant', 'POST /api/v1/auth/logout',
+        'GET /api/v1/exchange-rates/latest', 'GET /api/v1/financial-categories', 'GET /api/v1/payment-methods', 'GET /api/v1/settings/tax', 'GET /api/v1/tenant', 'POST /api/v1/auth/logout',
         'POST /api/v1/auth/change-password', 'POST /api/v1/auth/switch-tenant',
       ].sort());
       // every non-GET route that any member can call is part of the caller's own session/account

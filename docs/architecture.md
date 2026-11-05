@@ -2,7 +2,7 @@
 
 Modular monolith: NestJS 11 + Prisma 7 + SQLite. REST under `/api/v1`. See
 [database.md](database.md) for the schema and [frontend.md](frontend.md) for the web app.
-The backend covers Phases 1–6 (517 tests); the frontend foundation is in place.
+The backend covers Phases 1–6 (535 tests); the frontend foundation is in place.
 
 ## Request pipeline
 
@@ -120,8 +120,10 @@ The statement's closing balance per currency always equals `netBalance` (covered
 * **Timeline** (`file_activities`) is the human-readable history; the audit log is separate and also written.
 * **HS codes** are not seeded: an international heading is not the Lebanese tariff classification, so the table must be
   loaded from a verified source. Goods lines accept an `hsCodeId` once codes exist.
-* Not yet implemented: stage transitions, close / reopen, documents, tasks, costs (Phases 4–5). Shipments, containers and
-  goods lines cannot be deleted (not in the spec) — to be decided.
+* A shipment, container or goods line added by mistake can be removed (`DELETE /shipments/:id`, `/containers/:id`, `/goods/:id`, permission
+  `clearance_files.update`, open files only). Removing a shipment removes its containers and goods lines; the audit log keeps what was there.
+* A shipment's agent must be a business party recorded as a shipping agent, and its forwarder one recorded as a freight forwarder
+  (`422 PARTY_WRONG_KIND`).
 
 ## Documents (Phase 4)
 
@@ -133,7 +135,10 @@ The statement's closing balance per currency always equals `netBalance` (covered
 * **Content is verified from the bytes**, not the browser's Content-Type or the extension. Allowed: PDF, PNG, JPEG, GIF,
   TIFF, DOCX, XLSX, DOC, XLS, TXT, CSV. A name/content mismatch (415 `FILE_TYPE_MISMATCH`) and anything else, including
   HTML/SVG/executables/archives (415 `UNSUPPORTED_FILE_TYPE`), is refused. Arabic file names are preserved.
-  *Malware scanning (e.g. ClamAV) should be added before production.*
+* **Malware scanning:** every upload is scanned before it is stored (`MALWARE_SCAN`). `builtin` (the default) only recognises the EICAR
+  test file, so it proves the hook but is **not** anti-virus. `clamd` streams the file to a ClamAV daemon (`CLAMD_HOST`, `CLAMD_PORT`) and
+  refuses what it flags (`422 MALWARE_DETECTED`); if the daemon cannot be reached the upload fails (`503 SCANNER_UNAVAILABLE`) rather
+  than skip the check. Use `clamd` in production.
 * **Versions:** every upload of a new version is kept (`document_versions`, append-only); the document row always describes
   the current one and its review status resets to `PENDING_REVIEW`. Old versions download with `?version=N`.
 * **Download:** `GET /documents/:id/download` streams after verifying tenant ownership (`nosniff`, `no-store`, UTF-8 file
@@ -214,7 +219,10 @@ pass-through costs are never income or expense.
   `422 EXCHANGE_RATE_REQUIRED`. Every expense, invoice, payment and journal line **keeps the rate it used**.
 * An entry that values its two sides at different rates (cross-currency allocation; a payable settled at a later rate) books
   the difference as a **realized FX gain/loss on 4300**, so it still balances exactly. Liability balances are carried at
-  historical rates; **periodic revaluation is not implemented**.
+  historical rates until revalued. **Revaluation** (`POST /accounting/revaluation`, `accounting.post`, body `{ asOf, preview }`) compares each
+  asset / liability account's foreign balance, converted at the `asOf` rate, with the base value the ledger carries, and books the difference to
+  4300 in one `FX_REVALUATION` entry (lines move base value only, foreign amounts unchanged). It is repeatable: a second run books only what
+  changed, and a fully settled balance returns to nil. A currency with no rate on file for that date is skipped and listed, never guessed.
 
 ### Invoices, payments, allocations
 
@@ -230,7 +238,10 @@ pass-through costs are never income or expense.
   allocation can **cross currencies** (converted at the payment date's rate unless `invoiceAmount` is given). The allocation
   that exhausts a payment or closes an invoice takes the exact remainder, so rounding never leaves residue.
   Allocations are never edited or deleted: `…/allocations/:id/reverse` marks them reversed and reverses the entry.
-* **Advance invoices cannot be allocated** (they are requests). Money sent against one is received as an advance.
+* **Advance invoices cannot be allocated** (they are requests). Money sent against one is received as an advance; a `CLIENT_ADVANCE` payment
+  may name the advance invoice it answers (`advanceInvoiceId`: same client and currency). That settles the request (its paid / outstanding /
+  status follow the linked, still-posted payments) and changes nothing in the books: the money is a client advance either way, and can still be
+  applied to real invoices.
 * **Refunds** return only unapplied credit, measured **per currency**.
 
 ### Reports (base currency, from posted journal lines)
@@ -244,6 +255,8 @@ pass-through costs are never income or expense.
 
 ### Safeguards worth knowing
 
+* **Segregation of duties:** the office setting `allowSelfApproval` (default on) can be switched off in Settings (`PATCH /tenant`); then whoever
+  recorded an expense cannot approve it (`403 SELF_APPROVAL_NOT_ALLOWED`).
 * Closed files are read-only for money too (create/issue/approve/allocate/reverse → `FILE_NOT_EDITABLE`).
 * Money lists sort **numerically** (money is stored as text; a database `ORDER BY` would compare strings).
 * `test/migrations.test.ts` asserts that no integrity trigger is lost: **adding a column makes Prisma rebuild the SQLite
@@ -350,9 +363,6 @@ defaults (workflows, document requirements, categories, chart of accounts, cashb
 
 ## Known gaps
 
-* Mistakenly added shipments, containers and goods cannot be deleted yet.
-* Advance (unallocated) invoice allocation, and a Viewer role that can see accounting and reports.
-* Segregation of duties on expense approval.
-* Condition evaluation for document requirements.
-* Malware scanning of uploads.
-* Periodic foreign-exchange revaluation.
+* Anti-virus is only as good as the ClamAV daemon an office connects; without one, only the EICAR test file is caught.
+* Revaluation is run by a person at period end (`POST /accounting/revaluation`), not on a schedule.
+* HS codes are not seeded (no verified Lebanese tariff source).

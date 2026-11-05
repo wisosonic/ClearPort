@@ -41,3 +41,8 @@ export const decimalString = (dp: number, maxIntegerDigits = 14) =>
     }
     return d.toFixed(dp);
   });
+
+/** An IANA time zone such as "Asia/Beirut". Anything the runtime does not know is refused, so date logic never meets a bad zone. */
+export const timeZone = z.string().trim().max(50).refine((tz) => {
+  try { new Intl.DateTimeFormat('en', { timeZone: tz }); return true; } catch { return false; }
+}, 'Unknown time zone (use a name such as Asia/Beirut)');

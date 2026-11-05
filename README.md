@@ -10,8 +10,8 @@ Product and technical direction: [ClearPort_Project_Specification.md](ClearPort_
 
 | Part | Status |
 |---|---|
-| **Backend** (NestJS + Prisma + SQLite) | Phases 1–6 complete, 517 tests. Auth, multi-tenancy, RBAC, users/roles/branches/settings, CRM, clearance files, documents, workflow, tasks, finance and accounting, dashboard, reports, Excel/CSV/PDF export, printable invoices and statements, background jobs, backup/restore, audit log, security review. |
-| **Frontend** (React + Vite) | 300 tests. Sign-in (including office selection), app shell with permission-aware navigation, English/Arabic with RTL, dashboard, clients (list, create, details, contacts, files, balance and statement), business parties (agents, forwarders, suppliers), the audit log, my account (change password), printable invoice and statement PDFs, the tasks page, the office-wide shipments, documents, invoices, payments and expenses lists, reports (including profitability and the financial summary) with Excel/CSV/PDF export, accounting (journal, trial balance, chart of accounts, cash and bank, exchange rates), users and roles, settings (office, branches, tax, financial categories, document types, required documents, workflow templates), and the clearance-file workspace: list, create form, file page with stage moves, close/reopen, assignment, editing, shipments with containers and goods, documents (checklist, upload, review), tasks, invoices (drafts, issue, cancel), payments (record, apply, reverse), expenses (record, approve, pay), costs and profit, activity and stage history. Every section of the menu now has a screen. |
+| **Backend** (NestJS + Prisma + SQLite) | Phases 1–6 complete, 535 tests. Auth, multi-tenancy, RBAC, users/roles/branches/settings, CRM, clearance files, documents, workflow, tasks, finance and accounting, dashboard, reports, Excel/CSV/PDF export, printable invoices and statements, background jobs, backup/restore, audit log, security review. |
+| **Frontend** (React + Vite) | 308 tests. Sign-in (including office selection), app shell with permission-aware navigation, English/Arabic with RTL, dashboard, clients (list, create, details, contacts, files, balance and statement), business parties (agents, forwarders, suppliers), the audit log, my account (change password), printable invoice and statement PDFs, the tasks page, the office-wide shipments, documents, invoices, payments and expenses lists, reports (including profitability and the financial summary) with Excel/CSV/PDF export, accounting (journal, trial balance, chart of accounts, cash and bank, exchange rates), users and roles, settings (office, branches, tax, financial categories, document types, required documents, workflow templates), and the clearance-file workspace: list, create form, file page with stage moves, close/reopen, assignment, editing, shipments with containers and goods, documents (checklist, upload, review), tasks, invoices (drafts, issue, cancel), payments (record, apply, reverse), expenses (record, approve, pay), costs and profit, activity and stage history. Every section of the menu now has a screen. |
 
 Architecture and API notes: [docs/architecture.md](docs/architecture.md) (backend) and
 [docs/frontend.md](docs/frontend.md). Database: [docs/database.md](docs/database.md).
@@ -51,7 +51,7 @@ cp .env.example .env          # then set JWT_ACCESS_SECRET to a random string of
 npm run db:deploy             # apply migrations (use `npm run db:migrate` while developing schema changes)
 npm run db:generate           # generate the Prisma client into src/generated
 npm run db:seed               # permissions, system roles, currencies, document types, ports, ...
-npm test                      # unit, integration and API tests (517)
+npm test                      # unit, integration and API tests (535)
 
 # create the first office and its owner
 CLEARPORT_OWNER_PASSWORD='a-strong-password' npm run tenant:create -- \
@@ -63,7 +63,7 @@ Then, from the repository root:
 ```bash
 npm run start:api             # API on http://localhost:3000/api/v1
 npm run dev                   # web app on http://localhost:5173 (proxies /api to the API)
-npm test -w frontend          # frontend tests (300)
+npm test -w frontend          # frontend tests (308)
 ```
 
 Set `VITE_API_TARGET` to point the web app at a different API address.
@@ -79,10 +79,14 @@ See [backend/.env.example](backend/.env.example) for the full list. The importan
 | `JWT_ACCESS_SECRET` | signing secret, 32+ random characters (required) |
 | `CORS_ORIGINS` | allowed browser origins |
 | `BACKUP_DIR`, `BACKUP_PASSPHRASE`, `BACKUP_KEEP` | enable the nightly encrypted backup and set how many to keep |
+| `TRUST_PROXY` | number of reverse proxies in front of the API (`1` behind Caddy/nginx) |
+| `MALWARE_SCAN`, `CLAMD_HOST`, `CLAMD_PORT` | `clamd` scans uploads with ClamAV; the default `builtin` only recognises the EICAR test file |
 | `JOB_WORKER` | `false` to run background jobs in a separate process (`npm run worker`) |
 | `CHROME_PATH` | browser used for PDF printing, if not auto-detected |
 
 ## Operations
+
+For a production install (HTTPS, reverse proxy, secrets, backups, updating) see [docs/deployment.md](docs/deployment.md).
 
 - **Offices:** there is no self-registration; the operator creates offices with `npm run tenant:create`.
   Per-tenant defaults (workflows, document requirements, financial categories, chart of accounts, USD/LBP
