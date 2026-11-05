@@ -70,6 +70,19 @@ describe('signing in', () => {
     expect(await screen.findByText('شركة النور للتجارة')).toBeInTheDocument();
   });
 
+  it('lets the user reveal and hide the password they typed', async () => {
+    mount('/');
+    const user = userEvent.setup();
+    const field = await screen.findByLabelText('Password');
+    await user.type(field, 'Correct-Horse-9');
+    expect(field).toHaveAttribute('type', 'password');
+    await user.click(screen.getByRole('button', { name: 'Show password' }));
+    expect(field).toHaveAttribute('type', 'text');
+    expect(field).toHaveValue('Correct-Horse-9');
+    await user.click(screen.getByRole('button', { name: 'Hide password' }));
+    expect(field).toHaveAttribute('type', 'password');
+  });
+
   it('shows a clear message for a wrong password and stays on the login page', async () => {
     loginResponse = () => res(401, { success: false, error: { code: 'INVALID_CREDENTIALS', message: 'x', details: [] } });
     mount('/');

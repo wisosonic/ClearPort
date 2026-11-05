@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api-client';
-import { Alert, Button, Card, Field, Input, Select } from '@/components/ui/primitives';
+import { PasswordInput, Alert, Button, Card, Field, Input, Select } from '@/components/ui/primitives';
 import type { Branch, Role, UserRow } from '../types';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,7 +58,7 @@ export function UserForm({ user, onSaved, onCancel }: { user?: UserRow; onSaved:
           {!user && <Field label={t('clients.email')} htmlFor="user-email" error={touched ? errors.email : undefined}><Input id="user-email" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>}
           {!user && (
             <Field label={t('users.password')} htmlFor="user-password" hint={t('users.passwordHint')} error={touched ? errors.password : undefined}>
-              <Input id="user-password" type="password" autoComplete="new-password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <PasswordInput id="user-password" autoComplete="new-password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} />
             </Field>
           )}
           <Field label={t('users.firstName')} htmlFor="user-first" error={touched ? errors.firstName : undefined}><Input id="user-first" dir="auto" value={firstName} onChange={(e) => setFirstName(e.target.value)} /></Field>

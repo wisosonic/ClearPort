@@ -67,7 +67,9 @@
     "save": "حفظ",
     "cancel": "إلغاء",
     "confirm": "تأكيد",
-    "edit": "تعديل"
+    "edit": "تعديل",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور"
   },
   "dashboard": {
     "title": "لوحة التحكم",

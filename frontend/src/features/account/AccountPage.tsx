@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api-client';
 import { useAuth } from '@/features/auth/auth';
-import { Alert, Badge, Button, Card, Field, Input } from '@/components/ui/primitives';
+import { Alert, Badge, Button, Card, Field, PasswordInput } from '@/components/ui/primitives';
 
 function ChangePassword() {
   const { t } = useTranslation();
@@ -33,13 +33,13 @@ function ChangePassword() {
     <form onSubmit={(e) => { e.preventDefault(); setTouched(true); if (valid) save.mutate(); }} className="max-w-md space-y-4" noValidate>
       {save.isError && <Alert>{save.error instanceof ApiError ? save.error.message : t('common.error')}</Alert>}
       <Field label={t('account.currentPassword')} htmlFor="pw-current" error={touched ? errors.current : undefined}>
-        <Input id="pw-current" type="password" autoComplete="current-password" dir="ltr" value={current} onChange={(e) => setCurrent(e.target.value)} />
+        <PasswordInput id="pw-current" autoComplete="current-password" dir="ltr" value={current} onChange={(e) => setCurrent(e.target.value)} />
       </Field>
       <Field label={t('account.newPassword')} htmlFor="pw-new" hint={t('account.newPasswordHint')} error={touched ? errors.next : undefined}>
-        <Input id="pw-new" type="password" autoComplete="new-password" dir="ltr" value={next} onChange={(e) => setNext(e.target.value)} />
+        <PasswordInput id="pw-new" autoComplete="new-password" dir="ltr" value={next} onChange={(e) => setNext(e.target.value)} />
       </Field>
       <Field label={t('account.repeatPassword')} htmlFor="pw-again" error={touched ? errors.again : undefined}>
-        <Input id="pw-again" type="password" autoComplete="new-password" dir="ltr" value={again} onChange={(e) => setAgain(e.target.value)} />
+        <PasswordInput id="pw-again" autoComplete="new-password" dir="ltr" value={again} onChange={(e) => setAgain(e.target.value)} />
       </Field>
       <p className="text-xs text-slate-500">{t('account.signOutNote')}</p>
       <Button type="submit" loading={save.isPending}>{t('account.changePassword')}</Button>

@@ -1,5 +1,5 @@
-import { forwardRef, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { forwardRef, useState, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/cn';
 
@@ -29,6 +29,23 @@ Button.displayName = 'Button';
 const field = 'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-2 focus:outline-brand-500/30';
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(({ className, ...p }, ref) => <input ref={ref} className={cn(field, className)} {...p} />);
 Input.displayName = 'Input';
+/** A password field with an eye button that shows or hides what was typed. */
+export const PasswordInput = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>>(({ className, ...p }, ref) => {
+  const { t } = useTranslation();
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="relative">
+      <input ref={ref} type={shown ? 'text' : 'password'} className={cn(field, 'pe-10', className)} {...p} />
+      <button
+        type="button" aria-label={shown ? t('common.hidePassword') : t('common.showPassword')} aria-pressed={shown} onClick={() => setShown(!shown)}
+        className="absolute inset-y-0 end-0 flex w-10 items-center justify-center text-slate-500 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-brand-500"
+      >
+        {shown ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+      </button>
+    </div>
+  );
+});
+PasswordInput.displayName = 'PasswordInput';
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(({ className, ...p }, ref) => <select ref={ref} className={cn(field, 'pe-8', className)} {...p} />);
 Select.displayName = 'Select';
 

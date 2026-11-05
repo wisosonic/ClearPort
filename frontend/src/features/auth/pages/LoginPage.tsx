@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { ApiError } from '@/lib/api-client';
 import { setLocale } from '@/i18n';
 import type { Locale } from '@/lib/format';
-import { Button, Card, Field, Input, Select } from '@/components/ui/primitives';
+import { PasswordInput, Button, Card, Field, Input, Select } from '@/components/ui/primitives';
 import { useAuth } from '../auth';
 
 const schema = z.object({ email: z.string().trim().email(), password: z.string().min(1), office: z.string().optional() });
@@ -51,7 +51,7 @@ export function LoginPage() {
               <Input id="email" type="email" autoComplete="username" dir="ltr" {...register('email')} />
             </Field>
             <Field label={t('auth.password')} htmlFor="password" error={errors.password ? t('auth.invalid') : undefined}>
-              <Input id="password" type="password" autoComplete="current-password" dir="ltr" {...register('password')} />
+              <PasswordInput id="password" autoComplete="current-password" dir="ltr" {...register('password')} />
             </Field>
             {offices && (
               <Field label={t('auth.chooseOffice')} htmlFor="office">

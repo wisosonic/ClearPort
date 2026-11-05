@@ -63,7 +63,9 @@
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "edit": "Edit"
+    "edit": "Edit",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "dashboard": {
     "title": "Dashboard",
