@@ -80,7 +80,7 @@ export function ExpensesPage() {
                       <Td>{formatDate(e.expenseDate, locale)}</Td>
                       <Td dir="auto" className="font-medium">{e.description}</Td>
                       <Td dir="ltr" className="tabular-nums">{e.clearanceFile ? <Link to={`/files/${e.clearanceFile.id}`} className="text-brand-700 hover:underline">{e.clearanceFile.fileNumber}</Link> : '—'}</Td>
-                      <Td dir="auto">{e.category?.name ?? '—'}</Td>
+                      <Td dir="auto">{e.category?.name ?? '—'}{e.vendor && <span className="block text-xs text-slate-500">{e.vendor.name}</span>}</Td>
                       <Td dir="ltr" className="tabular-nums">{formatMoney(e.amount, e.currencyCode, locale)}</Td>
                       <Td>
                         <div className="flex flex-wrap gap-1">

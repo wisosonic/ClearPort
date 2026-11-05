@@ -67,6 +67,7 @@ beforeEach(() => {
     if (path === '/currencies') return ok([{ code: 'USD', name: 'US dollar', decimalPlaces: 2 }, { code: 'LBP', name: 'Lebanese pound', decimalPlaces: 0 }]);
     if (path === '/financial-categories') return ok(CATS);
     if (path === '/cash-accounts') return ok(ACCOUNTS);
+    if (path === '/parties') return ok([{ id: 'v1', name: 'Port Cranes Co', partyType: 'SUPPLIER' }, { id: 'v2', name: 'Cedar Transport', partyType: 'TRANSPORTER' }], { page: 1, limit: 25, total: 2 });
     if (method === 'POST' || method === 'PATCH') return ok({ id: 'x2' });
     return fail(404, 'NOT_FOUND', 'no route');
   }));
@@ -150,6 +151,33 @@ describe('recording and editing', () => {
     await user.click(within(form).getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(sent('PATCH', '/expenses/x1')).toHaveLength(1));
     expect(sent('PATCH', '/expenses/x1')[0].body).toMatchObject({ amount: '130', categoryId: 'cat2', description: 'Port fee 40ft' });
+  });
+
+  it('records who was paid, choosing from the office parties of any kind; clearing it on edit sends null', async () => {
+    permissions = [...ALL, 'clients.view'];
+    expenses = [EXP({ vendor: { id: 'v1', name: 'Port Cranes Co' } })];
+    const user = await open();
+    expect(await screen.findByText(/Port fees · Port Cranes Co/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Edit Port fee 40ft' }));
+    const form = (await screen.findByRole('heading', { name: 'Edit draft expense' })).closest('form')!;
+    const vendor = within(form).getByLabelText('Paid to (vendor)');
+    expect(vendor).toHaveValue('v1');
+    await waitFor(() => expect(within(vendor).getByRole('option', { name: 'Cedar Transport' })).toBeInTheDocument());
+    await user.selectOptions(vendor, '');
+    await user.click(within(form).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(sent('PATCH', '/expenses/x1')).toHaveLength(1));
+    expect(sent('PATCH', '/expenses/x1')[0].body).toMatchObject({ vendorId: null });
+  });
+
+  it('does not offer the vendor without permission to see parties, and then leaves it untouched', async () => {
+    expenses = [EXP({ vendor: { id: 'v1', name: 'Port Cranes Co' } })];
+    const user = await open();
+    await user.click(await screen.findByRole('button', { name: 'Edit Port fee 40ft' }));
+    const form = (await screen.findByRole('heading', { name: 'Edit draft expense' })).closest('form')!;
+    expect(within(form).queryByLabelText('Paid to (vendor)')).not.toBeInTheDocument();
+    await user.click(within(form).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(sent('PATCH', '/expenses/x1')).toHaveLength(1));
+    expect(sent('PATCH', '/expenses/x1')[0].body).not.toHaveProperty('vendorId');
   });
 
   it('is not offered without expenses.create', async () => {

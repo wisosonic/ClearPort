@@ -2,7 +2,7 @@
 
 Modular monolith: NestJS 11 + Prisma 7 + SQLite. REST under `/api/v1`. See
 [database.md](database.md) for the schema and [frontend.md](frontend.md) for the web app.
-The backend covers Phases 1–6 (516 tests); the frontend foundation is in place.
+The backend covers Phases 1–6 (517 tests); the frontend foundation is in place.
 
 ## Request pipeline
 
@@ -68,7 +68,7 @@ HTTP → helmet/CORS → ThrottlerGuard → JwtAuthGuard → PermissionsGuard
 | Signed download | `GET /downloads/:token` | public, short-lived signed token |
 | Document types | `GET /document-types`; `POST`, `PATCH /document-types` | `documents.view` / `settings.manage` |
 | Requirements | `GET /clearance-files/:id/document-requirements`; `GET/POST/PATCH/DELETE /document-requirements` | `clearance_files.view` / `workflows.manage` |
-| Workflow config | `GET /workflow-templates`; `POST`, `PATCH` templates; `POST`, `PATCH` stages; `POST`, `PATCH`, `DELETE` transitions | `clearance_files.view` / `workflows.manage` |
+| Workflow config | `GET /workflow-templates`; `POST`, `PATCH` templates; `POST`, `PATCH`, `DELETE` stages, `POST …/stages/reorder`; `POST`, `PATCH`, `DELETE` transitions | `clearance_files.view` / `workflows.manage` |
 | Moving files | `GET /clearance-files/:id/transitions`, `POST .../transition`, `GET .../status-history`, `GET .../closure-check`, `POST .../close`, `POST .../reopen` | view; transition's own permission; `clearance_files.close` |
 | Tasks | `GET/POST /tasks`, `GET/PATCH /tasks/:id`, `POST /tasks/:id/complete`, `GET /clearance-files/:id/tasks`, `GET /dashboard/my-tasks` | `tasks.view` / `tasks.manage` |
 | Currencies, rates | `GET /currencies`, `GET /exchange-rates`, `GET /exchange-rates/latest`; `POST /exchange-rates` | authenticated / `accounting.post` |

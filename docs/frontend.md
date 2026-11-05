@@ -167,7 +167,7 @@ The **Expenses** tab (needs `expenses.view`) lists the costs recorded against th
 * **Approve** (`expenses.approve`) books the expense. Choose the account it was paid from, or leave it unpaid to record a payable; **Mark as paid** settles a payable later.
   Accounts are those in the expense's currency, and picking one needs `payments.view`.
 * **Cancel** needs a reason; an expense already on an invoice cannot be cancelled until that invoice is (the API says so).
-* There is no vendor field: the API has no endpoint to list vendors yet.
+* **Paid to (vendor):** any business party can be recorded as the payee (shown beside the category in lists). The picker needs `clients.view` (the same permission as the parties list); without it the field is hidden and left untouched on edit.
 
 ### Clients (`features/clients/`)
 
@@ -234,7 +234,7 @@ Needs `settings.manage`.
 * **Workflows** (needs `workflows.manage`): a template is the set of stages a file moves through and the rules for each move. One template per file type is *in use* for new files (starting one stops
   the other of the same type); files already in progress keep the template they began with. A new template starts **not in use** so a half-built one is never picked up. Stage codes are fixed once
   created and stored upper-case; names are given in English and Arabic. A **move** (transition) can require complete documents, no open tasks, a reason, an approval, and/or a permission; a final
-  stage cannot have moves out of it, and a stage with moves out of it cannot be made final until they are removed (the API explains each refusal). Stages cannot be deleted or reordered yet.
+  stage cannot have moves out of it, and a stage with moves out of it cannot be made final until they are removed (the API explains each refusal). Stages can be moved up or down (the first stage is where new files start; files in flight are unaffected) and removed, but only when no file is at the stage or has passed through it and no required document refers to it; removing a stage removes its moves.
 
 ### Printable PDFs and my account
 

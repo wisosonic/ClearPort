@@ -5,7 +5,7 @@ import { PrismaService, TenantDbService } from '../../database/prisma.module';
 import { AuditService } from '../audit/audit.service';
 import type { AuthContext, RequestMeta } from '../auth/auth.types';
 import type {
-  createStageSchema, createTemplateSchema, createTransitionSchema, updateStageSchema,
+  createStageSchema, createTemplateSchema, createTransitionSchema, reorderStagesSchema, updateStageSchema,
   updateTemplateSchema, updateTransitionSchema,
 } from './workflow.schemas';
 
@@ -91,6 +91,42 @@ export class WorkflowAdminService {
     const after = await this.db.client.workflowStage.update({ where: { id: stageId }, data: input as any });
     await this.record(auth, meta, 'WORKFLOW_STAGE_UPDATED', 'WorkflowStage', stageId, before, after);
     return after;
+  }
+
+  /**
+   * Puts the stages in the given order (sequence 1..n). The first stage is where new files start, so this
+   * changes only files created from now on; files in flight keep their current stage.
+   */
+  async reorderStages(auth: AuthContext, templateId: string, input: z.infer<typeof reorderStagesSchema>, meta: RequestMeta) {
+    const template = await this.get(templateId);
+    const ids = input.stageIds;
+    const same = ids.length === template.stages.length && new Set(ids).size === ids.length && template.stages.every((s) => ids.includes(s.id));
+    if (!same) throw unprocessable('STAGE_ORDER_INVALID', 'List every stage of this template exactly once');
+    // sequence is unique per template: move everything out of the way first, then number 1..n
+    const OFFSET = 10000;
+    for (const s of template.stages) await this.db.client.workflowStage.update({ where: { id: s.id }, data: { sequence: s.sequence + OFFSET } });
+    for (const [i, id] of ids.entries()) await this.db.client.workflowStage.update({ where: { id }, data: { sequence: i + 1 } });
+    await this.record(auth, meta, 'WORKFLOW_STAGES_REORDERED', 'WorkflowTemplate', templateId,
+      { order: template.stages.map((s) => s.code) }, { order: ids.map((id) => template.stages.find((s) => s.id === id)!.code) });
+    return this.get(templateId);
+  }
+
+  /** A stage nothing has ever used can be removed; its transitions go with it. Used stages stay (they are history). */
+  async removeStage(auth: AuthContext, templateId: string, stageId: string, meta: RequestMeta) {
+    const before = await this.db.client.workflowStage.findFirst({ where: { id: stageId, workflowTemplateId: templateId } });
+    if (!before) throw notFound('WORKFLOW_STAGE_NOT_FOUND', 'Workflow stage not found');
+    const [files, history, gates] = await Promise.all([
+      this.db.client.clearanceFile.count({ where: { currentStageId: stageId } }),
+      this.db.client.fileStatusHistory.count({ where: { OR: [{ fromStageId: stageId }, { toStageId: stageId }] } }),
+      this.db.client.documentRequirement.count({ where: { isRequiredBeforeStageId: stageId } }),
+    ]);
+    if (files > 0) throw conflict('STAGE_IN_USE', 'Files are currently at this stage');
+    if (history > 0) throw conflict('STAGE_HAS_HISTORY', 'Files have passed through this stage, so it is kept for their history');
+    if (gates > 0) throw conflict('STAGE_REQUIRED_BY_DOCUMENTS', 'Required documents refer to this stage; change those first');
+    const transitions = await this.db.client.workflowTransition.findMany({ where: { OR: [{ fromStageId: stageId }, { toStageId: stageId }] } });
+    for (const t of transitions) await this.db.client.workflowTransition.delete({ where: { id: t.id } });
+    await this.db.client.workflowStage.delete({ where: { id: stageId } });
+    await this.record(auth, meta, 'WORKFLOW_STAGE_DELETED', 'WorkflowStage', stageId, { ...before, transitions: transitions.length }, undefined);
   }
 
   async addTransition(auth: AuthContext, templateId: string, input: z.infer<typeof createTransitionSchema>, meta: RequestMeta) {

@@ -30,6 +30,9 @@ export const updateStageSchema = z.object({
   isTerminal: z.boolean(),
 }).partial().strict();
 
+/** The new order: every stage of the template exactly once, first stage first. */
+export const reorderStagesSchema = z.object({ stageIds: z.array(uuid).min(1).max(100) }).strict();
+
 const transitionFlags = {
   requiredPermission: z.string().trim().min(3).max(100).nullable(),
   requiresDocumentCheck: z.boolean(),

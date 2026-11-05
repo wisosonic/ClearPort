@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Plus } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUp, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api-client';
 import { can } from '@/lib/permissions';
@@ -26,7 +26,7 @@ function useRefreshWorkflows() {
 
 // ───────────────────────────── stages ─────────────────────────────
 
-function StageRow({ s, templateId }: { s: Stage; templateId: string }) {
+function StageRow({ s, templateId, order }: { s: Stage; templateId: string; order: string[] }) {
   const { t } = useTranslation();
   const refresh = useRefreshWorkflows();
   const [editing, setEditing] = useState(false);
@@ -34,6 +34,22 @@ function StageRow({ s, templateId }: { s: Stage; templateId: string }) {
   const [nameAr, setNameAr] = useState(s.nameAr);
   const [terminal, setTerminal] = useState(s.isTerminal);
   const [problem, setProblem] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState(false);
+  const at = order.indexOf(s.id);
+  const move = useMutation({
+    mutationFn: (dir: -1 | 1) => {
+      const next = [...order];
+      [next[at], next[at + dir]] = [next[at + dir]!, next[at]!];
+      return api.post(`/workflow-templates/${templateId}/stages/reorder`, { stageIds: next });
+    },
+    onSuccess: async () => { setProblem(null); await refresh(); },
+    onError: (e) => setProblem(errText(e, t('common.error'))),
+  });
+  const remove = useMutation({
+    mutationFn: () => api.delete(`/workflow-templates/${templateId}/stages/${s.id}`),
+    onSuccess: async () => { setConfirm(false); setProblem(null); await refresh(); },
+    onError: (e) => { setConfirm(false); setProblem(errText(e, t('common.error'))); },
+  });
   const save = useMutation({
     mutationFn: () => api.patch(`/workflow-templates/${templateId}/stages/${s.id}`, { nameEn: nameEn.trim(), nameAr: nameAr.trim(), isTerminal: terminal }),
     onSuccess: async () => { setEditing(false); setProblem(null); await refresh(); },
@@ -62,10 +78,22 @@ function StageRow({ s, templateId }: { s: Stage; templateId: string }) {
               <Button disabled={!nameEn.trim() || !nameAr.trim()} loading={save.isPending} onClick={() => save.mutate()}>{t('common.save')}</Button>
               <Button variant="secondary" onClick={() => { setEditing(false); setNameEn(s.nameEn); setNameAr(s.nameAr); setTerminal(s.isTerminal); setProblem(null); }}>{t('common.cancel')}</Button>
             </div>
-          ) : <Button variant="ghost" aria-label={`${t('common.edit')} ${s.code}`} onClick={() => setEditing(true)}>{t('common.edit')}</Button>}
+          ) : (
+            <div className="flex flex-wrap gap-1">
+              <Button variant="ghost" aria-label={`${t('wf.moveUp')} ${s.code}`} disabled={at <= 0 || move.isPending} onClick={() => move.mutate(-1)}><ArrowUp className="size-4" aria-hidden /></Button>
+              <Button variant="ghost" aria-label={`${t('wf.moveDown')} ${s.code}`} disabled={at < 0 || at >= order.length - 1 || move.isPending} onClick={() => move.mutate(1)}><ArrowDown className="size-4" aria-hidden /></Button>
+              <Button variant="ghost" aria-label={`${t('common.edit')} ${s.code}`} onClick={() => setEditing(true)}>{t('common.edit')}</Button>
+              <Button variant="ghost" aria-label={`${t('wf.removeTransition')} ${s.code}`} onClick={() => setConfirm(true)}>{t('wf.removeTransition')}</Button>
+            </div>
+          )}
         </Td>
       </tr>
-      {problem && <tr><td colSpan={5} className="px-4 py-2"><Alert>{problem}</Alert></td></tr>}
+      {(problem || confirm) && (
+        <tr><td colSpan={5} className="space-y-2 px-4 py-2">
+          {problem && <Alert>{problem}</Alert>}
+          {confirm && <div className="flex flex-wrap items-center gap-2 text-sm"><span>{t('wf.removeStageConfirm', { name: s.nameEn })}</span><Button loading={remove.isPending} onClick={() => remove.mutate()}>{t('wf.removeTransition')}</Button><Button variant="secondary" onClick={() => setConfirm(false)}>{t('common.cancel')}</Button></div>}
+        </td></tr>
+      )}
     </>
   );
 }
@@ -238,7 +266,7 @@ export function WorkflowEditor({ template }: { template: Template }) {
         {template.stages.length === 0 ? <p className="text-sm text-slate-500">{t('wf.noStages')}</p> : (
           <div className="overflow-x-auto"><table className="w-full">
             <thead className="border-b border-slate-200"><tr><Th>#</Th><Th>{t('wf.stageCode')}</Th><Th>{t('common.name')}</Th><Th>{t('wf.terminal')}</Th><Th><span className="sr-only">{t('common.actions')}</span></Th></tr></thead>
-            <tbody className="divide-y divide-slate-100">{template.stages.map((s) => <StageRow key={s.id} s={s} templateId={template.id} />)}</tbody>
+            <tbody className="divide-y divide-slate-100">{template.stages.map((s) => <StageRow key={s.id} s={s} templateId={template.id} order={template.stages.map((x) => x.id)} />)}</tbody>
           </table></div>
         )}
       </section>

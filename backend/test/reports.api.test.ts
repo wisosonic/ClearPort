@@ -264,7 +264,8 @@ describe('financial reports API', () => {
       const period = await ok(api.req('get', '/reports/financial-summary?from=2026-11-05&to=2026-11-05', A.accountant));
       const before = await trialBalance(api, A.accountant, '2026-11-04');
       expect(Number(period.results.serviceRevenue)).toBe(Number(tb.balance('4100')) - Number(before.balance('4100')));
-      expect(period.results.officeExpenses).toBe('0.0000'); // the 50 office cost was on 3 Nov
+      // office costs are posted on the day they are approved, so compare with the ledger rather than assuming the day is empty
+      expect(Number(period.results.officeExpenses)).toBe(Number(tb.balance('5100')) - Number(before.balance('5100')));
       expect(period.from).toBe('2026-11-05');
     });
 

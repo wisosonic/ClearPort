@@ -508,6 +508,40 @@ describe('workflow engine API', () => {
       await ok(api.req('patch', `/workflow-templates/${std.id}`, manager).send({ isActive: true }));
     });
 
+    it('reorders and removes stages of a template nobody uses, and refuses once files have used them', async () => {
+      const tpl = (await ok(api.req('post', '/workflow-templates', manager).send({ name: 'Reorder me', fileType: 'EXPORT' }))).id;
+      const add = (code: string, extra: object = {}) => ok(api.req('post', `/workflow-templates/${tpl}/stages`, manager).send({ code, nameEn: code, nameAr: `${code}-ar`, ...extra }));
+      const a = (await add('ONE')).id; const b = (await add('TWO')).id; const c = (await add('THREE', { isTerminal: true })).id;
+      await ok(api.req('post', `/workflow-templates/${tpl}/transitions`, manager).send({ fromStageId: a, toStageId: b }));
+      const order = async () => (await ok(api.req('get', `/workflow-templates/${tpl}`, manager))).stages.map((x: any) => x.code);
+
+      const re = await api.req('post', `/workflow-templates/${tpl}/stages/reorder`, manager).send({ stageIds: [b, a, c] });
+      expect(re.status).toBe(200);
+      expect(await order()).toEqual(['TWO', 'ONE', 'THREE']);
+      expect((await api.req('post', `/workflow-templates/${tpl}/stages/reorder`, manager).send({ stageIds: [a, b] })).body.error.code).toBe('STAGE_ORDER_INVALID');
+      expect((await api.req('post', `/workflow-templates/${tpl}/stages/reorder`, manager).send({ stageIds: [a, a, b] })).body.error.code).toBe('STAGE_ORDER_INVALID');
+      expect(await order()).toEqual(['TWO', 'ONE', 'THREE']);
+      expect((await api.req('post', `/workflow-templates/${tpl}/stages/reorder`, officer).send({ stageIds: [a, b, c] })).status).toBe(403);
+      expect((await api.req('post', `/workflow-templates/${tpl}/stages/reorder`, B).send({ stageIds: [a, b, c] })).status).toBe(404);
+
+      // removing a stage takes its transitions along; the others keep their place
+      expect((await api.req('delete', `/workflow-templates/${tpl}/stages/${b}`, officer)).status).toBe(403);
+      expect((await api.req('delete', `/workflow-templates/${tpl}/stages/${b}`, manager)).status).toBe(204);
+      const after = await ok(api.req('get', `/workflow-templates/${tpl}`, manager));
+      expect(after.stages.map((x: any) => x.code)).toEqual(['ONE', 'THREE']);
+      expect(after.transitions).toHaveLength(0);
+      expect((await api.req('delete', `/workflow-templates/${tpl}/stages/${b}`, manager)).status).toBe(404);
+
+      // a stage files have passed through cannot be removed: files are at the standard workflow's stages
+      const std = (await ok(api.req('get', '/workflow-templates?fileType=IMPORT', A))).find((t: any) => t.name === 'Standard import clearance');
+      const f = await newFile();
+      await ok(move(officer, f.id, 'DOCUMENT_COLLECTION'));
+      const first = std.stages.find((x: any) => x.code === 'NEW_FILE');
+      const second = std.stages.find((x: any) => x.code === 'DOCUMENT_COLLECTION');
+      expect((await api.req('delete', `/workflow-templates/${std.id}/stages/${second.id}`, manager)).body.error.code).toBe('STAGE_IN_USE');
+      expect((await api.req('delete', `/workflow-templates/${std.id}/stages/${first.id}`, manager)).body.error.code).toBe('STAGE_IN_USE');
+    });
+
     it('requires workflows.manage and never exposes templates across offices', async () => {
       expect((await api.req('post', '/workflow-templates', officer).send({ name: 'Nope', fileType: 'IMPORT' })).status).toBe(403);
       expect((await api.req('patch', `/workflow-templates/${tplId}`, officer).send({ isActive: false })).status).toBe(403);

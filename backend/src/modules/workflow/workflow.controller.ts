@@ -7,7 +7,7 @@ import { CurrentAuth, ReqMeta, RequirePermissions } from '../auth/decorators';
 import { TransitionsService } from './transitions.service';
 import { WorkflowAdminService } from './workflow-admin.service';
 import {
-  closeSchema, createStageSchema, createTemplateSchema, createTransitionSchema, reopenSchema,
+  closeSchema, createStageSchema, createTemplateSchema, createTransitionSchema, reopenSchema, reorderStagesSchema,
   templateListQuerySchema, transitionSchema, updateStageSchema, updateTemplateSchema, updateTransitionSchema,
 } from './workflow.schemas';
 
@@ -61,6 +61,25 @@ export class WorkflowAdminController {
     @Body(new ZodPipe(updateStageSchema)) body: z.infer<typeof updateStageSchema>, @ReqMeta() meta: RequestMeta,
   ) {
     return this.admin.updateStage(auth, stageId, body, meta);
+  }
+
+  @RequirePermissions('workflows.manage')
+  @HttpCode(200)
+  @Post(':templateId/stages/reorder')
+  reorderStages(
+    @CurrentAuth() auth: AuthContext, @Param('templateId', id()) templateId: string,
+    @Body(new ZodPipe(reorderStagesSchema)) body: z.infer<typeof reorderStagesSchema>, @ReqMeta() meta: RequestMeta,
+  ) {
+    return this.admin.reorderStages(auth, templateId, body, meta);
+  }
+
+  @RequirePermissions('workflows.manage')
+  @HttpCode(204)
+  @Delete(':templateId/stages/:stageId')
+  async removeStage(
+    @CurrentAuth() auth: AuthContext, @Param('templateId', id()) templateId: string, @Param('stageId', id()) stageId: string, @ReqMeta() meta: RequestMeta,
+  ) {
+    await this.admin.removeStage(auth, templateId, stageId, meta);
   }
 
   @RequirePermissions('workflows.manage')

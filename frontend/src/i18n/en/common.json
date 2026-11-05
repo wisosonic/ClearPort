@@ -531,7 +531,8 @@
     "cancelReason": "Reason for cancelling this expense",
     "payFrom": "Paid from",
     "payFromHint": "Choose the account it was paid from, or leave it unpaid to record a payable.",
-    "leaveUnpaid": "Not paid yet (payable)"
+    "leaveUnpaid": "Not paid yet (payable)",
+    "vendor": "Paid to (vendor)"
   },
   "reports": {
     "title": "Reports",
@@ -832,7 +833,10 @@
       "requiresApproval": "Needs approval",
       "requiresReason": "Needs a reason",
       "requiredTaskCheck": "No open tasks"
-    }
+    },
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "removeStageConfirm": "Remove the stage \"{{name}}\" and its transitions? This only works for stages no file has used."
   },
   "account": {
     "title": "My account",

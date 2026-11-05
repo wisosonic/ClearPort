@@ -63,7 +63,7 @@ function ExpenseRow({ e, fileId, baseCurrency, editable }: { e: Expense; fileId:
   return (
     <>
       <tr>
-        <Td dir="auto"><span className="font-medium">{e.description}</span><span className="block text-xs text-slate-500">{e.category?.name}</span></Td>
+        <Td dir="auto"><span className="font-medium">{e.description}</span><span className="block text-xs text-slate-500">{e.category?.name}{e.vendor ? ` · ${e.vendor.name}` : ''}</span></Td>
         <Td>{formatDate(e.expenseDate, locale)}</Td>
         <Td dir="ltr" className="tabular-nums">{formatMoney(e.amount, e.currencyCode, locale)}</Td>
         <Td>

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '@/lib/api-client';
+import { can } from '@/lib/permissions';
+import { useAuth } from '@/features/auth/auth';
+import { PartyPicker } from '@/features/parties/PartyPicker';
 import { Alert, Button, Card, Field, Input, Select } from '@/components/ui/primitives';
 import type { Category, Currency } from '../invoices/types';
 import { POSITIVE, today } from '../payments/types';
@@ -10,6 +13,7 @@ export interface Expense {
   id: string; description: string; amount: string; currencyCode: string; expenseDate: string; status: 'DRAFT' | 'APPROVED' | 'CANCELLED';
   paymentStatus: 'UNPAID' | 'PARTIALLY_PAID' | 'PAID'; paidAt: string | null; categoryId: string;
   category: { id: string; name: string; costTreatment: string } | null; cashAccount: { id: string; name: string } | null;
+  vendor?: { id: string; name: string } | null;
   isBilled: boolean; billedOn: { id: string; invoiceNumber: string; status: string } | null;
 }
 
@@ -18,6 +22,9 @@ export function ExpenseForm({ fileId, expense, baseCurrency, onSaved, onCancel }
   fileId: string; expense?: Expense; baseCurrency: string; onSaved: () => void | Promise<void>; onCancel: () => void;
 }) {
   const { t } = useTranslation();
+  const { permissions } = useAuth();
+  const canPickVendor = can(permissions, 'clients.view'); // the party list is behind the same permission as clients
+  const [vendorId, setVendorId] = useState(expense?.vendor?.id ?? '');
   const [categoryId, setCategoryId] = useState(expense?.categoryId ?? '');
   const [description, setDescription] = useState(expense?.description ?? '');
   const [amount, setAmount] = useState(expense ? expense.amount.replace(/\.?0+$/, '') : '');
@@ -33,7 +40,7 @@ export function ExpenseForm({ fileId, expense, baseCurrency, onSaved, onCancel }
 
   const save = useMutation({
     mutationFn: () => {
-      const common = { categoryId, description: description.trim(), amount: amount.trim(), currencyCode: currency, expenseDate: date || undefined };
+      const common = { categoryId, description: description.trim(), amount: amount.trim(), currencyCode: currency, expenseDate: date || undefined, ...(canPickVendor ? { vendorId: vendorId || (expense ? null : undefined) } : {}) };
       return expense ? api.patch(`/expenses/${expense.id}`, common) : api.post('/expenses', { ...common, clearanceFileId: fileId });
     },
     onSuccess: async () => { await onSaved(); },
@@ -61,6 +68,7 @@ export function ExpenseForm({ fileId, expense, baseCurrency, onSaved, onCancel }
           <Field label={t('inv.description')} htmlFor="exp-description" error={touched ? errors.description : undefined}>
             <Input id="exp-description" dir="auto" value={description} onChange={(e) => setDescription(e.target.value)} />
           </Field>
+          {canPickVendor && <Field label={t('exp.vendor')} htmlFor="exp-vendor"><PartyPicker id="exp-vendor" value={vendorId} current={expense?.vendor} onChange={setVendorId} /></Field>}
           <Field label={t('pay.amount')} htmlFor="exp-amount" error={touched ? errors.amount : undefined}>
             <Input id="exp-amount" inputMode="decimal" dir="ltr" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </Field>

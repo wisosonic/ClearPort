@@ -174,6 +174,29 @@ describe('stages', () => {
     expect(sent('PATCH', '/workflow-templates/w1/stages/s2')[0].body).toEqual({ nameEn: 'Customs inspection', nameAr: 'المعاينة', isTerminal: false });
   });
 
+  it('moves a stage up or down by sending the whole new order; the ends cannot move further', async () => {
+    const user = await open();
+    await edit(user);
+    expect(await screen.findByRole('button', { name: 'Move up NEW_FILE' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Move down DONE' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Move up CUSTOMS' }));
+    await waitFor(() => expect(sent('POST', '/workflow-templates/w1/stages/reorder')).toHaveLength(1));
+    expect(sent('POST', '/workflow-templates/w1/stages/reorder')[0].body).toEqual({ stageIds: ['s2', 's1', 's3'] });
+  });
+
+  it('removes a stage only after confirming, and shows the refusal when files have used it', async () => {
+    failNext['DELETE /workflow-templates/w1/stages/s2'] = fail(409, 'STAGE_IN_USE', 'Files are currently at this stage');
+    const user = await open();
+    await edit(user);
+    await user.click(await screen.findByRole('button', { name: 'Remove CUSTOMS' }));
+    expect(sent('DELETE', '/workflow-templates/w1/stages/s2')).toHaveLength(0);
+    await user.click(within(screen.getByText(/Remove the stage "Customs review"/).parentElement!).getByRole('button', { name: 'Remove' }));
+    expect(await screen.findByText('Files are currently at this stage')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Remove CUSTOMS' }));
+    await user.click(within(screen.getByText(/Remove the stage "Customs review"/).parentElement!).getByRole('button', { name: 'Remove' }));
+    await waitFor(() => expect(sent('DELETE', '/workflow-templates/w1/stages/s2')).toHaveLength(2));
+  });
+
   it('shows the server refusal when a stage with moves out of it is made final', async () => {
     failNext['PATCH /workflow-templates/w1/stages/s2'] = fail(409, 'STAGE_HAS_TRANSITIONS', "Remove this stage's outgoing transitions before making it terminal");
     const user = await open();
